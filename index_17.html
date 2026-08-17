@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<meta charset="utf-8">
+<meta name="description" content="A free, open Qur'an reader. Facing pages as printed, 26 languages, published translations, recitation. No account, no tracking, nothing leaves your browser.">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Open Muṣḥaf — a free, open Qur'an reader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link id="baseFont" href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --lapis:#33427E; --saffron:#E5A33A; --madder:#B0483E;
+    --pearl:#EFE3CC; --verdigris:#4E8577;
+    --display:'Iowan Old Style','Palatino Linotype',Palatino,'Book Antiqua','Hoefler Text',Georgia,serif;
+    --ui:'Avenir Next','Segoe UI',system-ui,-apple-system,sans-serif;
+    --mono:'SF Mono','JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+    --quran:'Amiri Quran','Amiri','KFGQPC Uthman Taha Naskh','Scheherazade New','Traditional Arabic','Geeza Pro','Noto Naskh Arabic',serif;
+    --uiLine:1.5;
+  }
+  html[lang="ur"]{ --ui:'Noto Nastaliq Urdu','Jameel Noori Nastaleeq',var(--quran); --display:'Noto Nastaliq Urdu',var(--quran); --uiLine:2.4; }
+  html[lang="fa"],html[lang="ar"]{ --ui:'Noto Naskh Arabic','Amiri','Geeza Pro',system-ui,sans-serif; --display:'Amiri','Noto Naskh Arabic',serif; --uiLine:1.9; }
+  html[lang="bn"]{ --ui:'Noto Sans Bengali',system-ui,sans-serif; --display:'Noto Serif Bengali',Georgia,serif; --uiLine:1.8; }
+
+  *{box-sizing:border-box}
+  html{height:100%}
+  body{
+    margin:0;min-height:100%;
+    background-color:#0B0814;
+    background-image:radial-gradient(130% 95% at 50% 2%, #241B3E 0%, #171029 42%, #0B0814 100%);
+    background-repeat:no-repeat;background-attachment:fixed;
+    color:var(--pearl);font-family:var(--ui);line-height:var(--uiLine);-webkit-font-smoothing:antialiased;
+    display:flex;flex-direction:column;align-items:center;
+    padding:clamp(16px,3vw,32px) clamp(14px,3vw,34px) 36px;
+  }
+  .wrap{width:100%;max-width:1260px}
+  @media (min-width:1500px){ .wrap{max-width:1560px} }
+  @media (min-width:1900px){ .wrap{max-width:1800px} }
+  /* prose has a measure even when the leaf does not */
+  .par,.solo{max-width:1100px;margin-inline:auto}
+  .eyebrow{font-size:12.5px;text-transform:uppercase;letter-spacing:.09em;color:rgba(239,227,204,.84)}
+  html[dir="rtl"] .eyebrow{letter-spacing:0}
+
+  header{display:flex;align-items:baseline;gap:.7em;flex-wrap:wrap;margin-bottom:6px}
+  h1{font-family:var(--display);font-weight:400;font-size:clamp(1.45rem,3.2vw,1.95rem);margin:0}
+  .ar-title{font-family:var(--quran);font-size:clamp(1.15rem,2.6vw,1.5rem);color:var(--saffron);opacity:.85;line-height:1}
+  .loc{font-family:var(--display);font-style:italic;font-size:15px;color:rgba(239,227,204,.7);
+       padding-inline-start:.7em;border-inline-start:1px solid rgba(229,163,58,.35)}
+  .tagline{margin-inline-start:auto;font-size:13.5px;color:rgba(239,227,204,.82)}
+  .rule{height:1px;background:linear-gradient(90deg,transparent,rgba(229,163,58,.3) 8%,rgba(229,163,58,.3) 92%,transparent);margin:0 0 18px}
+
+  .density{display:flex;border:1px solid rgba(239,227,204,.13);border-radius:3px;overflow:hidden;width:max-content;margin-bottom:18px;max-width:100%}
+  .den{all:unset;cursor:pointer;padding:9px 17px;display:flex;flex-direction:column;gap:3px;
+       border-inline-end:1px solid rgba(239,227,204,.09);transition:background .18s;text-align:center}
+  .den:last-child{border-inline-end:0}
+  .den:hover{background:rgba(229,163,58,.06)}
+  .den:focus-visible{outline:1px solid var(--saffron);outline-offset:-2px}
+  .den .t{font-family:var(--display);font-size:.96rem;color:rgba(239,227,204,.82)}
+  .den .s{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:rgba(239,227,204,.82)}
+  .den[aria-pressed="true"]{background:rgba(176,72,62,.16)}
+  .den[aria-pressed="true"] .t{color:var(--saffron)}
+  .den[aria-pressed="true"] .s{color:rgba(239,227,204,.88)}
+
+  .stage{display:grid;grid-template-columns:1fr 292px;gap:clamp(20px,3vw,42px);align-items:start}
+
+  .spread{display:grid;gap:0;direction:rtl}
+  .spread.two{grid-template-columns:1fr 1fr}
+  .spread.one{grid-template-columns:1fr}
+  .leaf{position:relative;padding:clamp(18px,2.4vw,30px) clamp(18px,2.4vw,30px) 44px;
+        background:linear-gradient(180deg,rgba(28,21,48,.5),rgba(16,11,30,.5))}
+  .spread.two .leaf.right{border-left:1px solid rgba(229,163,58,.22)}
+  .spread.two .leaf{min-height:min(70vh,660px)}
+  .jadwal{position:absolute;inset:9px;pointer-events:none;border:1px solid rgba(229,163,58,.5);
+          box-shadow:inset 0 0 0 4px rgba(51,66,126,.55), inset 0 0 0 6px rgba(229,163,58,.28)}
+  .corner{position:absolute;width:15px;height:15px;opacity:.7}
+  .corner.tl{top:13px;left:13px}.corner.tr{top:13px;right:13px}
+  .corner.bl{bottom:13px;left:13px}.corner.br{bottom:13px;right:13px}
+
+  .folio{font-family:var(--quran);direction:rtl;text-align:justify;text-align-last:center;
+         font-size:clamp(1.1rem,1.7vw,1.4rem);line-height:2.55;margin:0;padding:6px 4px}
+  .v{cursor:pointer;border-radius:2px;transition:background .18s,color .18s;padding:0 .04em}
+  .v:hover{background:rgba(229,163,58,.09)}
+  .v.sel{background:rgba(229,163,58,.12);box-shadow:0 -2px 0 rgba(229,163,58,.5) inset,0 0 0 1px rgba(229,163,58,.22)}
+  .v.reciting{color:var(--saffron);background:rgba(229,163,58,.13)}
+  .rosette{display:inline-block;vertical-align:-.32em;margin:0 .1em}
+  .rosette text{font-family:var(--quran);fill:var(--saffron);font-size:11.5px}
+
+  .cartouche{margin:14px 2px 16px;padding:11px 16px;
+    border-top:1px solid rgba(229,163,58,.45);border-bottom:1px solid rgba(229,163,58,.45);
+    background:linear-gradient(90deg,rgba(51,66,126,.34),rgba(176,72,62,.16),rgba(51,66,126,.34));
+    display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;text-align:center}
+  .cartouche .nm{font-family:var(--quran);font-size:1.26em;color:var(--saffron);line-height:1.6}
+  .cartouche .sub{font-family:var(--mono);font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:rgba(239,227,204,.88);direction:ltr}
+  .basmala{font-family:var(--quran);text-align:center;font-size:1.14em;color:rgba(239,227,204,.92);margin:6px 0 15px;line-height:2}
+
+  .folio-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    position:absolute;left:26px;right:26px;bottom:15px;direction:rtl;
+    font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:rgba(239,227,204,.82)}
+  .folio-foot .no{font-family:var(--quran);font-size:16px;color:rgba(229,163,58,.6);letter-spacing:0}
+
+  .par{border:1px solid rgba(229,163,58,.18);border-radius:3px;background:rgba(11,8,20,.3);padding:6px clamp(12px,2vw,24px) 18px}
+  .prow{display:grid;grid-template-columns:1fr;gap:6px;padding:18px 4px;border-bottom:1px solid rgba(239,227,204,.07)}
+  .prow:last-child{border-bottom:0}
+  .prow .a{font-family:var(--quran);direction:rtl;text-align:right;font-size:clamp(1.1rem,1.7vw,1.36rem);line-height:2.4}
+  .prow .t{font-family:var(--display);font-size:1rem;line-height:1.7;color:rgba(239,227,204,.92)}
+  .prow .n{font-family:var(--mono);font-size:12px;letter-spacing:.07em;color:rgba(239,227,204,.82);direction:ltr;text-align:start}
+  .prow.sel{background:rgba(229,163,58,.07);box-shadow:inset 2px 0 0 var(--madder)}
+  .prow.reciting .a{color:var(--saffron)}
+  @media(min-width:760px){ .prow{grid-template-columns:1.05fr 1fr;gap:26px;align-items:baseline} .prow .n{grid-column:1/-1} }
+
+  .solo{border:1px solid rgba(229,163,58,.2);border-radius:3px;background:rgba(11,8,20,.35);padding:clamp(24px,4vw,42px)}
+  .solo .a{font-family:var(--quran);direction:rtl;text-align:right;font-size:clamp(1.5rem,3.4vw,2.1rem);line-height:2.2;margin:0}
+  .solo .div{height:1px;background:rgba(239,227,204,.12);margin:26px 0}
+  .solo .t{font-family:var(--display);font-size:clamp(1rem,2.1vw,1.18rem);line-height:1.72;color:rgba(239,227,204,.96);margin:0}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:22px;font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:rgba(239,227,204,.84)}
+  .meta .hi{color:var(--saffron)} .meta .sj{color:var(--madder)}
+
+  .study{margin-top:20px;border:1px solid rgba(229,163,58,.18);border-radius:3px;padding:18px 20px;background:rgba(11,8,20,.4)}
+  .study.empty{border-style:dashed;border-color:rgba(239,227,204,.3);color:rgba(239,227,204,.82);font-size:14.5px;text-align:center;padding:14px}
+  .study .ref{font-family:var(--mono);font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--saffron);margin-bottom:10px;direction:ltr;text-align:start}
+  .study .tx{font-family:var(--display);font-size:1.02rem;line-height:1.7;color:rgba(239,227,204,.96);margin:0 0 14px}
+  .tabs{display:flex;border-bottom:1px solid rgba(239,227,204,.1);margin:4px 0 12px;flex-wrap:wrap}
+  .tab{all:unset;cursor:pointer;padding:6px 13px;font-size:12px;letter-spacing:.07em;text-transform:uppercase;
+       color:rgba(239,227,204,.84);border-bottom:1px solid transparent;margin-bottom:-1px}
+  .tab:hover{color:rgba(239,227,204,.92)}
+  .tab:focus-visible{outline:1px solid var(--saffron);outline-offset:-2px}
+  .tab[aria-selected="true"]{color:var(--saffron);border-bottom-color:var(--madder)}
+  .cite{font-family:var(--mono);font-size:14px;line-height:1.8;white-space:pre-wrap;word-break:break-word;direction:ltr;text-align:start;
+        background:rgba(0,0,0,.3);border:1px solid rgba(239,227,204,.08);border-radius:3px;padding:13px 15px;
+        color:rgba(239,227,204,.92);max-height:200px;overflow:auto}
+  .cite .ai{font-family:var(--quran);font-size:16px;direction:rtl;display:block;text-align:right;line-height:2}
+  .row{display:flex;gap:9px;margin-top:11px;flex-wrap:wrap}
+
+  .transport{display:flex;align-items:center;justify-content:center;gap:15px;margin-top:20px;
+    position:sticky;bottom:12px;z-index:5;padding:11px 18px;border-radius:34px;width:max-content;
+    margin-inline:auto;background:rgba(22,15,40,.95);backdrop-filter:blur(10px);
+    border:1px solid rgba(229,163,58,.3);box-shadow:0 10px 30px rgba(0,0,0,.5)}
+  .turn{all:unset;cursor:pointer;width:46px;height:46px;display:grid;place-items:center;border-radius:50%;
+        background:rgba(239,227,204,.1);border:1px solid rgba(239,227,204,.42);color:var(--pearl);
+        transition:background .18s,border-color .18s,color .18s}
+  .turn svg{width:19px;height:19px}
+  .turn:hover{background:rgba(229,163,58,.2);border-color:var(--saffron);color:var(--saffron)}
+  .turn:focus-visible{outline:2px solid var(--saffron);outline-offset:3px}
+  .turn[disabled]{opacity:.34;cursor:not-allowed}
+  .where{font-family:var(--mono);font-size:13px;letter-spacing:.06em;color:var(--pearl);min-width:172px;text-align:center;direction:ltr}
+  .listen{all:unset;cursor:pointer;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;
+          background:var(--saffron);color:#17102A;box-shadow:0 0 0 5px rgba(229,163,58,.18);
+          transition:background .18s,box-shadow .18s,transform .1s}
+  .listen:hover{background:#F2B455;box-shadow:0 0 0 8px rgba(229,163,58,.26)}
+  .listen:active{transform:scale(.96)}
+  .listen:focus-visible{outline:2px solid var(--pearl);outline-offset:4px}
+  .listen svg{width:20px;height:20px;fill:currentColor}
+
+  .rail{display:flex;flex-direction:column;gap:20px;position:sticky;top:18px}
+  .clockwrap{position:relative;width:100%;max-width:292px;aspect-ratio:1;margin:0 auto}
+  canvas{width:100%;height:100%;display:block;cursor:pointer}
+  .clockmid{position:absolute;inset:0;display:grid;place-content:center;text-align:center;pointer-events:none}
+  .pct{font-family:var(--display);font-size:1.6rem;line-height:1}
+  .khc{font-family:var(--quran);font-size:15px;color:var(--saffron);margin-top:6px;letter-spacing:.12em;line-height:1}
+  .pgs{font-family:var(--mono);font-size:12px;letter-spacing:.07em;color:rgba(239,227,204,.84);margin-top:6px;direction:ltr}
+  .legend{display:grid;grid-template-columns:auto 1fr;gap:3px 9px;font-size:12px;color:rgba(239,227,204,.82)}
+  .legend b{color:rgba(239,227,204,.92);font-weight:400;text-align:end;font-family:var(--mono)}
+
+  select,input{width:100%;background:rgba(0,0,0,.3);color:var(--pearl);font-family:var(--ui);
+    border:1px solid rgba(239,227,204,.16);border-radius:3px;padding:8px 10px;font-size:14.5px}
+  select:focus-visible,input:focus-visible{outline:1px solid var(--saffron);outline-offset:1px}
+  .grp>.eyebrow{display:block;margin-bottom:7px}
+  .two2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .toggle{display:flex;align-items:center;gap:9px;cursor:pointer;font-size:13.5px;color:rgba(239,227,204,.82);margin-top:9px}
+  .toggle input{appearance:none;-webkit-appearance:none;width:28px;height:15px;border-radius:8px;flex:none;
+    background:rgba(239,227,204,.15);position:relative;cursor:pointer;border:0;padding:0;margin:0;transition:background .2s}
+  .toggle input::after{content:'';position:absolute;top:2px;inset-inline-start:2px;width:11px;height:11px;border-radius:50%;
+    background:rgba(239,227,204,.55);transition:transform .2s,background .2s}
+  .toggle input:checked{background:rgba(229,163,58,.32)}
+  .toggle input:checked::after{transform:translateX(13px);background:var(--saffron)}
+  html[dir="rtl"] .toggle input:checked::after{transform:translateX(-13px)}
+  .ghost{all:unset;cursor:pointer;text-align:center;padding:8px 13px;border:1px solid rgba(239,227,204,.14);border-radius:3px;
+         font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:rgba(239,227,204,.82)}
+  html[dir="rtl"] .ghost,html[dir="rtl"] .tab,html[dir="rtl"] .den .s{letter-spacing:0;text-transform:none;font-size:13.5px}
+  .ghost:hover{border-color:rgba(229,163,58,.6);color:var(--saffron)}
+  .ghost:focus-visible{outline:2px solid var(--saffron);outline-offset:2px}
+
+  .status{display:flex;align-items:center;gap:9px;padding:9px 12px;margin-bottom:15px;
+    border:1px solid rgba(239,227,204,.1);border-radius:3px;font-size:13px;color:rgba(239,227,204,.88)}
+  .dot{width:6px;height:6px;border-radius:50%;background:rgba(239,227,204,.3);flex:none}
+  .dot.warn{background:var(--madder);box-shadow:0 0 0 3px rgba(176,72,62,.18)}
+  .status button{all:unset;margin-inline-start:auto;cursor:pointer;color:var(--saffron);border-bottom:1px solid rgba(229,163,58,.4)}
+  .status.hidden{display:none}
+  .hide{display:none !important}
+
+  footer{margin-top:32px;padding-top:16px;border-top:1px solid rgba(239,227,204,.08);font-size:13.5px;line-height:1.75;color:rgba(239,227,204,.82)}
+  footer a{color:rgba(239,227,204,.88)}
+  .support{margin-top:16px;padding-top:14px;border-top:1px solid rgba(239,227,204,.12);
+           font-size:12.5px;line-height:1.7;color:rgba(239,227,204,.88)}
+  .support a{color:var(--saffron);border-bottom:1px solid rgba(229,163,58,.45);
+             white-space:nowrap;padding-bottom:1px;margin-inline-start:.35em}
+  .support a:hover{border-bottom-color:var(--saffron);background:rgba(229,163,58,.08)} footer b{color:rgba(239,227,204,.88);font-weight:500}
+
+  @media (max-width:700px){
+    .transport{gap:10px;padding:9px 12px;bottom:10px}
+    .where{min-width:88px;font-size:12px;letter-spacing:0}
+    .turn{width:44px;height:44px} .listen{width:52px;height:52px}
+    .density{width:100%}
+    .den{flex:1;padding:9px 6px;min-width:0}
+    .den .t{font-size:.9rem} .den .s{font-size:10px;letter-spacing:0}
+    /* justified Arabic on a narrow measure opens rivers between words */
+    .folio{text-align:right;text-align-last:right}
+    .folio-foot{left:18px;right:18px;font-size:11px;letter-spacing:0}
+    .cartouche{gap:8px;padding:10px 12px}
+    .cartouche .sub{font-size:11px;letter-spacing:.03em}
+    .tab{min-height:44px;display:inline-flex;align-items:center;padding:0 12px}
+    .ghost{min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+    select,input{min-height:44px}
+    .clockwrap{max-width:248px}
+    .meta{gap:6px 12px}
+    .study,.solo{padding:16px 15px}
+  }
+  @media (max-width:1000px){
+    .stage{grid-template-columns:1fr;gap:28px}
+    .rail{position:static;max-width:420px;margin:0 auto;width:100%}
+    .spread.two{grid-template-columns:1fr}
+    .spread.two .leaf.left{display:none}
+    .spread.two .leaf.right{border-left:0}
+    .spread.two .leaf{min-height:auto}
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1 id="brand">Muṣḥaf</h1><span class="ar-title" id="arTitle">مصحف</span>
+    <span class="loc" id="loc"></span>
+    <span class="tagline" id="tagline"></span>
+  </header>
+  <div class="rule"></div>
+
+  <div class="density" id="density" role="group"></div>
+  <div class="status" id="status"><span class="dot" id="dot"></span><span id="statusText"></span></div>
+
+  <main class="stage">
+    <div>
+      <div class="spread two" id="spread">
+        <section class="leaf right" id="leafR">
+          <div class="jadwal"></div><div class="folio" id="folioR"></div>
+          <div class="folio-foot"><span id="fRl"></span><span class="no" id="fRn"></span><span id="fRr"></span></div>
+        </section>
+        <section class="leaf left" id="leafL">
+          <div class="jadwal"></div><div class="folio" id="folioL"></div>
+          <div class="folio-foot"><span id="fLl"></span><span class="no" id="fLn"></span><span id="fLr"></span></div>
+        </section>
+      </div>
+
+      <div class="par hide" id="par"></div>
+
+      <div class="solo hide" id="solo">
+        <p class="a" id="soloAr" dir="rtl" lang="ar"></p>
+        <div class="div"></div>
+        <p class="t" id="soloTr"></p>
+        <div class="meta" id="soloMeta"></div>
+      </div>
+
+      <div class="transport">
+        <button class="turn" id="prev"></button>
+        <button class="listen" id="listen"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></button>
+        <span class="where" id="where">—</span>
+        <button class="turn" id="next"></button>
+      </div>
+
+      <div class="study empty" id="study"></div>
+    </div>
+
+    <aside class="rail">
+      <div class="grp">
+        <span class="eyebrow" id="l_lang">Language</span>
+        <select id="langSel" aria-label="Language"></select>
+        <div id="draftNote" style="font-size:13px;line-height:1.5;color:#E08878;margin-top:7px"></div>
+      </div>
+
+      <div class="clockwrap">
+        <canvas id="clock" role="img" aria-hidden="true"></canvas>
+        <div class="clockmid"><div class="pct" id="pct">0%</div><div class="pgs" id="pgs">0 / 604</div><div class="khc" id="khCount"></div></div>
+      </div>
+      <p id="clockAlt" role="status" aria-live="polite" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap"></p>
+      <div class="legend" id="legend"></div>
+
+      <div class="grp">
+        <span class="eyebrow" id="l_goto"></span>
+        <select id="surahSel"></select>
+        <div class="two2" style="margin-top:8px">
+          <input type="number" id="pageIn" min="1" max="604">
+          <input type="text" id="refIn" placeholder="2:255">
+        </div>
+      </div>
+      <div class="grp">
+        <span class="eyebrow" id="l_trans"></span>
+        <select id="transSel"></select>
+      </div>
+      <div class="grp">
+        <span class="eyebrow" id="l_recit"></span>
+        <select id="reciterSel"></select>
+        <label class="toggle"><input type="checkbox" id="cont" checked><span id="l_carry"></span></label>
+      </div>
+      <div class="grp two2">
+        <button class="ghost" id="markBtn"></button>
+        <button class="ghost" id="resetBtn"></button>
+      </div>
+    </aside>
+  </main>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+(() => {
+"use strict";
+const API='https://api.alquran.cloud/v1', CDN='https://cdn.islamic.network/quran/audio';
+const PAGES=604, AYAHS=6236, TAU=Math.PI*2;
+const KOFI='https://ko-fi.com/openmushaf';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ══ i18n ═══════════════════════════════════════════════
+   Interface strings only. The Qur'an itself is never translated here —
+   translations come from published works via the API, translator always named.
+   `rev:false` means no native speaker has reviewed this locale yet; the UI
+   says so and invites corrections. Flip to true only after a real review.
+   `api` overrides the API's language code when it differs from ours.        */
+const LANGS={
+ en:{name:'English',dir:'ltr',digits:null,font:null,rev:true,s:{brand:'Open Muṣḥaf',
+  tag:'no account · no tracking · nothing leaves this device',
+  m1:'Muṣḥaf',m1s:'read · memorise',m2:'Parallel',m2s:'learn',m3:'Āyah',m3s:'study · cite',
+  lang:'Language',goto:'Go to',surah:'Sūrah',page:'Page',ref:'Reference',trans:'Translation',
+  recit:'Recitation',carry:'Carry on to the next page',mark:'Mark read',reset:'Reset khatma',
+  resetAsk:'Clear khatma progress on this device?',
+  empty:'Tap any āyah — its translation and citation open here, in every view.',
+  copy:'Copy citation',copied:'Copied',open:'Open this āyah',see:'See it on the page',
+  t1:'Short',t2:'Full',t3:'Block',t4:'Markdown',
+  lSurah:'sūrah · outer · by length',lPage:'pages',lRub:'rub el-ḥizb',lJuz:"juz' · a month",lManzil:'manzil · a week · inner',
+  loading:'Opening the muṣḥaf…',fail:'Cannot reach the source',retry:'Retry',by:'trans.',juz:"Juz'",hizb:'Ḥizb',
+  draft:'This translation is a draft — corrections welcome',
+  sup:'%s costs $37 a year to run — domain, hosting and technical support. The code is open.',supCta:'Support development'}},
+
+ ar:{name:'العربية',dir:'rtl',digits:'٠١٢٣٤٥٦٧٨٩',font:'Noto+Naskh+Arabic:wght@400;600',rev:false,s:{brand:'المصحف المفتوح',
+  tag:'بلا حساب · بلا تتبّع · لا شيء يغادر جهازك',
+  m1:'مصحف',m1s:'قراءة وحفظ',m2:'مقابل',m2s:'تعلّم',m3:'آية',m3s:'دراسة واقتباس',
+  lang:'اللغة',goto:'انتقل إلى',surah:'سورة',page:'صفحة',ref:'مرجع',trans:'ترجمة',
+  recit:'تلاوة',carry:'تابع إلى الصفحة التالية',mark:'علّم كمقروء',reset:'إعادة الختمة',
+  resetAsk:'مسح تقدّم الختمة من هذا الجهاز؟',
+  empty:'انقر أي آية — تظهر ترجمتها واقتباسها هنا.',
+  copy:'نسخ الاقتباس',copied:'تم النسخ',open:'افتح هذه الآية',see:'اعرضها في الصفحة',
+  t1:'مختصر',t2:'كامل',t3:'اقتباس',t4:'ماركداون',
+  lSurah:'سورة · الخارج · بالطول',lPage:'صفحات',lRub:'ربع الحزب',lJuz:'جزء · شهر',lManzil:'منزل · أسبوع · الداخل',
+  loading:'يُفتح المصحف…',fail:'تعذّر الوصول إلى المصدر',retry:'إعادة المحاولة',by:'ترجمة',juz:'جزء',hizb:'حزب',
+  draft:'هذه الترجمة مسوّدة — التصحيحات مرحّب بها',
+  sup:'%s يكلّف ٣٧ دولاراً في السنة — النطاق والاستضافة والدعم التقني. الشيفرة مفتوحة.',supCta:'ادعم التطوير'}},
+
+ id:{name:'Bahasa Indonesia',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Mushaf',
+  tag:'tanpa akun · tanpa pelacakan · tidak ada yang keluar dari perangkat ini',
+  m1:'Mushaf',m1s:'baca · hafal',m2:'Terjemah',m2s:'belajar',m3:'Ayat',m3s:'telaah · kutip',
+  lang:'Bahasa',goto:'Buka',surah:'Surah',page:'Halaman',ref:'Rujukan',trans:'Terjemahan',
+  recit:'Bacaan',carry:'Lanjut ke halaman berikutnya',mark:'Tandai dibaca',reset:'Atur ulang khatam',
+  resetAsk:'Hapus catatan khatam di perangkat ini?',
+  empty:'Ketuk ayat mana pun — terjemahan dan kutipannya muncul di sini.',
+  copy:'Salin kutipan',copied:'Tersalin',open:'Buka ayat ini',see:'Lihat di halaman',
+  t1:'Singkat',t2:'Lengkap',t3:'Kutipan',t4:'Markdown',
+  lSurah:'surah · luar · menurut panjang',lPage:'halaman',lRub:"rubu' hizb",lJuz:'juz · sebulan',lManzil:'manzil · sepekan · dalam',
+  loading:'Membuka mushaf…',fail:'Tidak dapat menghubungi sumber',retry:'Coba lagi',by:'terj.',juz:'Juz',hizb:'Hizb',
+  draft:'Terjemahan ini masih draf — koreksi sangat diterima',
+  sup:'%s menghabiskan $37 per tahun — domain, hosting, dan dukungan teknis. Kodenya terbuka.',supCta:'Dukung pengembangan'}},
+
+ bn:{name:'বাংলা',dir:'ltr',digits:'০১২৩৪৫৬৭৮৯',font:'Noto+Serif+Bengali:wght@400;600&family=Noto+Sans+Bengali:wght@400;600',rev:false,s:{brand:'ওপেন মুসহাফ',
+  tag:'কোনো অ্যাকাউন্ট নয় · কোনো ট্র্যাকিং নয় · কিছুই এই ডিভাইস ছাড়ে না',
+  m1:'মুসহাফ',m1s:'পড়ুন · মুখস্থ করুন',m2:'অনুবাদসহ',m2s:'শিখুন',m3:'আয়াত',m3s:'অধ্যয়ন · উদ্ধৃতি',
+  lang:'ভাষা',goto:'যান',surah:'সূরা',page:'পৃষ্ঠা',ref:'রেফারেন্স',trans:'অনুবাদ',
+  recit:'তিলাওয়াত',carry:'পরের পৃষ্ঠায় চলুন',mark:'পঠিত চিহ্নিত করুন',reset:'খতম রিসেট',
+  resetAsk:'এই ডিভাইস থেকে খতমের অগ্রগতি মুছবেন?',
+  empty:'যেকোনো আয়াতে ট্যাপ করুন — এর অনুবাদ ও উদ্ধৃতি এখানে আসবে।',
+  copy:'উদ্ধৃতি কপি করুন',copied:'কপি হয়েছে',open:'এই আয়াত খুলুন',see:'পৃষ্ঠায় দেখুন',
+  t1:'সংক্ষিপ্ত',t2:'পূর্ণ',t3:'উদ্ধৃতি',t4:'মার্কডাউন',
+  lSurah:'সূরা · বাইরে · দৈর্ঘ্য অনুসারে',lPage:'পৃষ্ঠা',lRub:"রুবু' হিযব",lJuz:'পারা · এক মাস',lManzil:'মনজিল · এক সপ্তাহ · ভিতরে',
+  loading:'মুসহাফ খোলা হচ্ছে…',fail:'উৎসে পৌঁছানো যাচ্ছে না',retry:'আবার চেষ্টা',by:'অনুবাদ',juz:'পারা',hizb:'হিযব',
+  draft:'এই অনুবাদ খসড়া — সংশোধন স্বাগত',
+  sup:'%s চালাতে বছরে $37 লাগে — ডোমেইন, হোস্টিং ও কারিগরি সহায়তা। কোড উন্মুক্ত।',supCta:'উন্নয়নে সহায়তা করুন'}},
+
+ ur:{name:'اردو',dir:'rtl',digits:'۰۱۲۳۴۵۶۷۸۹',font:'Noto+Nastaliq+Urdu:wght@400;600',rev:false,s:{brand:'المصحف المفتوح',
+  tag:'کوئی اکاؤنٹ نہیں · کوئی ٹریکنگ نہیں · کچھ بھی اس ڈیوائس سے باہر نہیں جاتا',
+  m1:'مصحف',m1s:'پڑھیں اور حفظ کریں',m2:'ترجمے کے ساتھ',m2s:'سیکھیں',m3:'آیت',m3s:'مطالعہ اور حوالہ',
+  lang:'زبان',goto:'جائیں',surah:'سورہ',page:'صفحہ',ref:'حوالہ',trans:'ترجمہ',
+  recit:'تلاوت',carry:'اگلے صفحے پر جاری رکھیں',mark:'پڑھا ہوا',reset:'ختم دوبارہ شروع',
+  resetAsk:'اس ڈیوائس سے ختم کی پیش رفت مٹا دیں؟',
+  empty:'کسی بھی آیت پر ٹیپ کریں — اس کا ترجمہ اور حوالہ یہاں کھلے گا۔',
+  copy:'حوالہ نقل کریں',copied:'نقل ہو گیا',open:'یہ آیت کھولیں',see:'صفحے پر دیکھیں',
+  t1:'مختصر',t2:'مکمل',t3:'اقتباس',t4:'مارک ڈاؤن',
+  lSurah:'سورہ · بیرونی · لمبائی کے مطابق',lPage:'صفحات',lRub:'ربع حزب',lJuz:'پارہ · ایک مہینہ',lManzil:'منزل · ایک ہفتہ · اندرونی',
+  loading:'مصحف کھل رہا ہے…',fail:'ماخذ تک رسائی نہیں',retry:'دوبارہ کوشش',by:'ترجمہ',juz:'پارہ',hizb:'حزب',
+  draft:'یہ ترجمہ مسودہ ہے — تصحیح خوش آمدید',
+  sup:'%s چلانے پر سالانہ ۳۷ ڈالر لاگت آتی ہے — ڈومین، ہوسٹنگ اور تکنیکی معاونت۔ کوڈ کھلا ہے۔',supCta:'ترقی میں تعاون کریں'}},
+
+ hi:{name:'हिन्दी',dir:'ltr',digits:null,font:'Noto+Sans+Devanagari:wght@400;600&family=Noto+Serif+Devanagari:wght@400;600',rev:false,s:{brand:'ओपन मुसहफ़',
+  tag:'कोई खाता नहीं · कोई ट्रैकिंग नहीं · कुछ भी इस डिवाइस से बाहर नहीं जाता',
+  m1:'मुसहफ़',m1s:'पढ़ें · याद करें',m2:'अनुवाद सहित',m2s:'सीखें',m3:'आयत',m3s:'अध्ययन · संदर्भ',
+  lang:'भाषा',goto:'जाएँ',surah:'सूरा',page:'पृष्ठ',ref:'संदर्भ',trans:'अनुवाद',
+  recit:'तिलावत',carry:'अगले पृष्ठ पर जारी रखें',mark:'पढ़ा हुआ चिह्नित करें',reset:'ख़त्म रीसेट करें',
+  resetAsk:'इस डिवाइस से ख़त्म की प्रगति मिटाएँ?',
+  empty:'किसी भी आयत पर टैप करें — उसका अनुवाद और संदर्भ यहाँ खुलेगा।',
+  copy:'संदर्भ कॉपी करें',copied:'कॉपी हो गया',open:'यह आयत खोलें',see:'पृष्ठ पर देखें',
+  t1:'संक्षिप्त',t2:'पूर्ण',t3:'उद्धरण',t4:'मार्कडाउन',
+  lSurah:'सूरा · बाहरी · लंबाई अनुसार',lPage:'पृष्ठ',lRub:'रुबउल हिज़्ब',lJuz:'पारा · एक माह',lManzil:'मंज़िल · एक सप्ताह · भीतरी',
+  loading:'मुसहफ़ खुल रहा है…',fail:'स्रोत तक नहीं पहुँच सके',retry:'फिर कोशिश करें',by:'अनु.',juz:'पारा',hizb:'हिज़्ब',
+  draft:'यह अनुवाद प्रारूप है — सुधार का स्वागत है',
+  sup:'%s को चलाने में सालाना $37 लगते हैं — डोमेन, होस्टिंग और तकनीकी सहायता। कोड खुला है।',supCta:'विकास में सहयोग करें'}},
+
+ tr:{name:'Türkçe',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Mushaf',
+  tag:'hesap yok · takip yok · hiçbir şey bu cihazdan çıkmaz',
+  m1:'Mushaf',m1s:'oku · ezberle',m2:'Mealli',m2s:'öğren',m3:'Âyet',m3s:'incele · alıntıla',
+  lang:'Dil',goto:'Git',surah:'Sûre',page:'Sayfa',ref:'Referans',trans:'Meal',
+  recit:'Tilâvet',carry:'Sonraki sayfaya devam et',mark:'Okundu işaretle',reset:'Hatmi sıfırla',
+  resetAsk:'Bu cihazdaki hatim ilerlemesi silinsin mi?',
+  empty:'Herhangi bir âyete dokunun — meali ve alıntısı burada açılır.',
+  copy:'Alıntıyı kopyala',copied:'Kopyalandı',open:'Bu âyeti aç',see:'Sayfada gör',
+  t1:'Kısa',t2:'Tam',t3:'Alıntı',t4:'Markdown',
+  lSurah:'sûre · dış · uzunluğa göre',lPage:'sayfa',lRub:"rub'u hizb",lJuz:'cüz · bir ay',lManzil:'menzil · bir hafta · iç',
+  loading:'Mushaf açılıyor…',fail:'Kaynağa ulaşılamıyor',retry:'Tekrar dene',by:'meal:',juz:'Cüz',hizb:'Hizb',
+  draft:'Bu çeviri taslaktır — düzeltmeler memnuniyetle karşılanır',
+  sup:'%s yılda 37 dolara mal oluyor — alan adı, barındırma ve teknik destek. Kod açık.',supCta:'Geliştirmeyi destekle'}},
+
+ fa:{name:'فارسی',dir:'rtl',digits:'۰۱۲۳۴۵۶۷۸۹',font:'Noto+Naskh+Arabic:wght@400;600',rev:false,s:{brand:'المصحف المفتوح',
+  tag:'بدون حساب · بدون ردیابی · هیچ چیز از این دستگاه خارج نمی‌شود',
+  m1:'مصحف',m1s:'خواندن و حفظ',m2:'ترجمه',m2s:'یادگیری',m3:'آیه',m3s:'مطالعه و ارجاع',
+  lang:'زبان',goto:'برو به',surah:'سوره',page:'صفحه',ref:'ارجاع',trans:'ترجمه',
+  recit:'تلاوت',carry:'به صفحهٔ بعد ادامه بده',mark:'خوانده شد',reset:'بازنشانی ختم',
+  resetAsk:'پیشرفت ختم روی این دستگاه پاک شود؟',
+  empty:'روی هر آیه بزنید — ترجمه و ارجاع آن اینجا باز می‌شود.',
+  copy:'کپی ارجاع',copied:'کپی شد',open:'این آیه را باز کن',see:'در صفحه ببین',
+  t1:'کوتاه',t2:'کامل',t3:'نقل قول',t4:'مارک‌داون',
+  lSurah:'سوره · بیرونی · بر پایهٔ طول',lPage:'صفحه',lRub:'ربع حزب',lJuz:'جزء · یک ماه',lManzil:'منزل · یک هفته · درونی',
+  loading:'مصحف باز می‌شود…',fail:'دسترسی به منبع ممکن نیست',retry:'تلاش دوباره',by:'ترجمه',juz:'جزء',hizb:'حزب',
+  draft:'این ترجمه پیش‌نویس است — اصلاحات خوش‌آمد است',
+  sup:'%s سالانه ۳۷ دلار هزینه دارد — دامنه، میزبانی و پشتیبانی فنی. کد باز است.',supCta:'از توسعه حمایت کنید'}},
+
+ ps:{name:'پښتو',dir:'rtl',digits:'۰۱۲۳۴۵۶۷۸۹',font:'Noto+Naskh+Arabic:wght@400;600',rev:false,s:{brand:'المصحف المفتوح',
+  tag:'حساب نشته · څارنه نشته · هیڅ شی له دې وسیلې نه وځي',
+  m1:'مصحف',m1s:'لوستل · حفظول',m2:'له ژباړې سره',m2s:'زده کړه',m3:'آيت',m3s:'مطالعه · حواله',
+  lang:'ژبه',goto:'ورتګ',surah:'سوره',page:'مخ',ref:'حواله',trans:'ژباړه',
+  recit:'تلاوت',carry:'راتلونکي مخ ته دوام ورکړه',mark:'لوستل شوی ونښه',reset:'ختم بیا پیل',
+  resetAsk:'له دې وسیلې د ختم پرمختګ ړنګ شي؟',
+  empty:'په هر آيت کلیک وکړئ — ژباړه او حواله يې دلته پرانیځي.',
+  copy:'حواله کاپي کړه',copied:'کاپي شو',open:'دا آيت پرانیځه',see:'په مخ کې يې وګوره',
+  t1:'لنډ',t2:'بشپړ',t3:'اقتباس',t4:'مارک ډاون',
+  lSurah:'سوره · بهرنی · د اوږدوالي له مخې',lPage:'مخونه',lRub:'ربع حزب',lJuz:'جز · يوه مياشت',lManzil:'منزل · يوه اونۍ · دننه',
+  loading:'مصحف پرانيستل کيږي…',fail:'سرچینې ته لاسرسی ونشو',retry:'بیا هڅه',by:'ژباړه',juz:'جز',hizb:'حزب',
+  draft:'دا ژباړه مسوده ده — سمونونه ښه راغلاست',
+  sup:'%s په کال کې ۳۷ ډالره لګښت لري — ډومین، هوستینګ او تخنیکي ملاتړ. کوډ خلاص دی.',supCta:'د پرمختګ ملاتړ وکړئ'}},
+
+ ckb:{name:'کوردی (سۆرانی)',api:'ku',dir:'rtl',digits:'٠١٢٣٤٥٦٧٨٩',font:'Noto+Naskh+Arabic:wght@400;600',rev:false,s:{brand:'المصحف المفتوح',
+  tag:'هیچ هەژمارێک نییە · هیچ چاودێریەک نییە · هیچ شتێک ئەم ئامێرە بەجێناهێڵێت',
+  m1:'موسحەف',m1s:'خوێندنەوە · لەبەرکردن',m2:'لەگەڵ وەرگێڕان',m2s:'فێربوون',m3:'ئایە',m3s:'لێکۆڵینەوە · ئاماژە',
+  lang:'زمان',goto:'بڕۆ بۆ',surah:'سوورە',page:'لاپەڕە',ref:'ئاماژە',trans:'وەرگێڕان',
+  recit:'خوێندنەوە',carry:'بەردەوامبە بۆ لاپەڕەی داهاتوو',mark:'وەک خوێندراوە نیشانە بکە',reset:'خەتمە لە سەرەتاوە',
+  resetAsk:'پێشکەوتنی خەتمە لەم ئامێرە بسڕدرێتەوە؟',
+  empty:'دەست بنێ بە هەر ئایەیەک — وەرگێڕان و ئاماژەکەی لێرە دەکرێتەوە.',
+  copy:'ئاماژە لەبەربگرەوە',copied:'لەبەرگیرایەوە',open:'ئەم ئایەیە بکەرەوە',see:'لە لاپەڕەدا ببینە',
+  t1:'کورت',t2:'تەواو',t3:'وتەبڕین',t4:'مارکداون',
+  lSurah:'سوورە · دەرەوە · بەپێی درێژی',lPage:'لاپەڕەکان',lRub:'ڕوبعی حیزب',lJuz:'جزء · مانگێک',lManzil:'مەنزیل · هەفتەیەک · ناوەوە',
+  loading:'موسحەف دەکرێتەوە…',fail:'ناتوانرێت بگات بە سەرچاوە',retry:'دووبارە هەوڵبدەوە',by:'وەرگ.',juz:'جزء',hizb:'حیزب',
+  draft:'ئەم وەرگێڕانە ڕەشنووسە — ڕاستکردنەوە بەخێربێت',
+  sup:'%s ساڵانە ٣٧ دۆلار تێچووی هەیە — دۆمەین، هۆستینگ و پاڵپشتی تەکنیکی. کۆدەکە کراوەیە.',supCta:'پشتیوانی لە گەشەپێدان بکە'}},
+
+ ru:{name:'Русский',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Открытый Мусхаф',
+  tag:'без аккаунта · без слежки · ничто не покидает это устройство',
+  m1:'Мусхаф',m1s:'чтение · заучивание',m2:'С переводом',m2s:'изучение',m3:'Аят',m3s:'разбор · цитата',
+  lang:'Язык',goto:'Перейти',surah:'Сура',page:'Страница',ref:'Ссылка',trans:'Перевод',
+  recit:'Чтение',carry:'Продолжать на следующей странице',mark:'Отметить прочитанным',reset:'Сбросить хатм',
+  resetAsk:'Удалить прогресс хатма на этом устройстве?',
+  empty:'Коснитесь любого аята — его перевод и ссылка откроются здесь.',
+  copy:'Копировать ссылку',copied:'Скопировано',open:'Открыть этот аят',see:'Показать на странице',
+  t1:'Кратко',t2:'Полно',t3:'Цитата',t4:'Markdown',
+  lSurah:'сура · внешнее · по длине',lPage:'страницы',lRub:'руб аль-хизб',lJuz:'джуз · месяц',lManzil:'манзиль · неделя · внутреннее',
+  loading:'Мусхаф открывается…',fail:'Не удаётся связаться с источником',retry:'Повторить',by:'пер.',juz:'Джуз',hizb:'Хизб',
+  draft:'Этот перевод — черновик, правки приветствуются',
+  sup:'%s стоит $37 в год — домен, хостинг и техническая поддержка. Код открыт.',supCta:'Поддержать разработку'}},
+
+ ha:{name:'Hausa',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Mushafi',
+  tag:"babu asusu · babu bin diddigi · babu abin da ke fita daga wannan na'urar",
+  m1:"Mus'hafi",m1s:'karatu · haddace',m2:'Da fassara',m2s:'koyo',m3:'Aya',m3s:'nazari · ambato',
+  lang:'Harshe',goto:'Je zuwa',surah:'Sura',page:'Shafi',ref:'Nassi',trans:'Fassara',
+  recit:'Karatu',carry:'Ci gaba zuwa shafi na gaba',mark:'Alama an karanta',reset:'Sake fara khatma',
+  resetAsk:"A share ci gaban khatma daga wannan na'urar?",
+  empty:'Danna kowace aya — fassararta da nassinta za su buɗe a nan.',
+  copy:'Kwafi nassi',copied:'An kwafa',open:'Buɗe wannan aya',see:'Duba a shafi',
+  t1:'Taƙaitacce',t2:'Cikakke',t3:'Ambato',t4:'Markdown',
+  lSurah:'sura · waje · bisa tsawo',lPage:'shafuka',lRub:"rub'ul hizbi",lJuz:"juzu'i · wata",lManzil:'manzili · mako · ciki',
+  loading:"Ana buɗe mus'hafi…",fail:'Ba a iya isa ga tushen',retry:'Sake gwadawa',by:'fass.',juz:"Juzu'i",hizb:'Hizbi',
+  draft:'Wannan fassarar daftari ce — ana maraba da gyara',
+  sup:'%s yana kashe $37 a shekara — yanki, masauki da tallafin fasaha. Lambar a buɗe take.',supCta:'Tallafa wa ci gaba'}},
+
+ sw:{name:'Kiswahili',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Msahafu',
+  tag:'hakuna akaunti · hakuna ufuatiliaji · hakuna kinachotoka kwenye kifaa hiki',
+  m1:'Msahafu',m1s:'soma · hifadhi',m2:'Na tafsiri',m2s:'jifunze',m3:'Aya',m3s:'chunguza · nukuu',
+  lang:'Lugha',goto:'Nenda',surah:'Sura',page:'Ukurasa',ref:'Rejea',trans:'Tafsiri',
+  recit:'Kisomo',carry:'Endelea ukurasa unaofuata',mark:'Weka alama imesomwa',reset:'Anzisha upya khatma',
+  resetAsk:'Futa maendeleo ya khatma kwenye kifaa hiki?',
+  empty:'Gusa aya yoyote — tafsiri na rejea yake zitafunguka hapa.',
+  copy:'Nakili rejea',copied:'Imenakiliwa',open:'Fungua aya hii',see:'Iangalie ukurasani',
+  t1:'Fupi',t2:'Kamili',t3:'Nukuu',t4:'Markdown',
+  lSurah:'sura · nje · kwa urefu',lPage:'kurasa',lRub:'rubuu hizb',lJuz:'juzuu · mwezi',lManzil:'manzili · wiki · ndani',
+  loading:'Msahafu unafunguliwa…',fail:'Haiwezi kufikia chanzo',retry:'Jaribu tena',by:'taf.',juz:'Juzuu',hizb:'Hizb',
+  draft:'Tafsiri hii ni rasimu — masahihisho yanakaribishwa',
+  sup:'%s hugharimu $37 kwa mwaka — kikoa, mwenyeji na msaada wa kiufundi. Msimbo ni wazi.',supCta:'Saidia maendeleo'}},
+
+ so:{name:'Soomaali',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Mus-haf',
+  tag:'koonto ma jirto · raad-raac ma jiro · waxba kama baxaan qalabkan',
+  m1:'Mus-haf',m1s:'akhri · xafid',m2:'Turjumaad la jira',m2s:'baro',m3:'Aayad',m3s:'darso · soo xigo',
+  lang:'Luqad',goto:'Tag',surah:'Suurad',page:'Bog',ref:'Tixraac',trans:'Turjumaad',
+  recit:'Akhris',carry:'Sii wad bogga xiga',mark:'Calaamadi in la akhriyay',reset:'Dib u bilow khatmada',
+  resetAsk:'Ma tirtiraa horumarka khatmada qalabkan?',
+  empty:'Taabo aayad kasta — turjumaaddeeda iyo tixraaceeda halkan ayay ka furmi doonaan.',
+  copy:'Koobi tixraaca',copied:'Waa la koobiyeeyay',open:'Fur aayaddan',see:'Ku arag bogga',
+  t1:'Gaaban',t2:'Buuxa',t3:'Soo-xigasho',t4:'Markdown',
+  lSurah:'suurad · dibadda · dhererka',lPage:'bogag',lRub:'rubuc xisbi',lJuz:'juzuu · bil',lManzil:'mansil · toddobaad · gudaha',
+  loading:'Mus-hafka waa la furayaa…',fail:'Ma la xidhiidhi karo ilaha',retry:'Isku day mar kale',by:'turj.',juz:'Juzuu',hizb:'Xisbi',
+  draft:'Turjumaaddan waa qabyo — hagaajinta waa la soo dhaweynayaa',
+  sup:'%s waxay ku kacaysaa $37 sanadkii — domain, hosting iyo taageero farsamo. Koodhku waa furan yahay.',supCta:'Taageer horumarinta'}},
+
+ uz:{name:'Oʻzbekcha',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Mushaf',
+  tag:'hisob yoʻq · kuzatuv yoʻq · hech narsa bu qurilmadan chiqmaydi',
+  m1:'Mushaf',m1s:'oʻqish · yodlash',m2:'Tarjima bilan',m2s:'oʻrganish',m3:'Oyat',m3s:'tahlil · iqtibos',
+  lang:'Til',goto:'Oʻtish',surah:'Sura',page:'Sahifa',ref:'Havola',trans:'Tarjima',
+  recit:'Qiroat',carry:'Keyingi sahifaga davom etish',mark:'Oʻqilgan deb belgilash',reset:'Xatmni tiklash',
+  resetAsk:'Bu qurilmadagi xatm natijasi oʻchirilsinmi?',
+  empty:'Istalgan oyatga bosing — uning tarjimasi va havolasi shu yerda ochiladi.',
+  copy:'Havolani nusxalash',copied:'Nusxalandi',open:'Bu oyatni ochish',see:'Sahifada koʻrish',
+  t1:'Qisqa',t2:'Toʻliq',t3:'Iqtibos',t4:'Markdown',
+  lSurah:'sura · tashqi · uzunligi boʻyicha',lPage:'sahifalar',lRub:'rubʼul hizb',lJuz:'juz · bir oy',lManzil:'manzil · bir hafta · ichki',
+  loading:'Mushaf ochilmoqda…',fail:'Manbaga ulanib boʻlmadi',retry:'Qayta urinish',by:'tarj.',juz:'Juz',hizb:'Hizb',
+  draft:'Bu tarjima qoralama — tuzatishlar qabul qilinadi',
+  sup:'%s yiliga $37 turadi — domen, hosting va texnik yordam. Kod ochiq.',supCta:'Rivojlanishni qoʻllab-quvvatlash'}},
+
+ az:{name:'Azərbaycanca',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Müshəf',
+  tag:'hesab yoxdur · izləmə yoxdur · heç nə bu cihazdan çıxmır',
+  m1:'Müshəf',m1s:'oxu · əzbərlə',m2:'Tərcümə ilə',m2s:'öyrən',m3:'Ayə',m3s:'araşdır · sitat',
+  lang:'Dil',goto:'Keç',surah:'Surə',page:'Səhifə',ref:'İstinad',trans:'Tərcümə',
+  recit:'Tilavət',carry:'Növbəti səhifəyə davam et',mark:'Oxundu işarələ',reset:'Xətmi sıfırla',
+  resetAsk:'Bu cihazdakı xətm gedişatı silinsin?',
+  empty:'İstənilən ayəyə toxunun — tərcüməsi və istinadı burada açılır.',
+  copy:'İstinadı kopyala',copied:'Kopyalandı',open:'Bu ayəni aç',see:'Səhifədə gör',
+  t1:'Qısa',t2:'Tam',t3:'Sitat',t4:'Markdown',
+  lSurah:'surə · xarici · uzunluğa görə',lPage:'səhifə',lRub:'rübül hizb',lJuz:'cüz · bir ay',lManzil:'mənzil · bir həftə · daxili',
+  loading:'Müshəf açılır…',fail:'Mənbəyə çıxış yoxdur',retry:'Yenidən cəhd',by:'tərc.',juz:'Cüz',hizb:'Hizb',
+  draft:'Bu tərcümə qaralamadır — düzəlişlər qəbul olunur',
+  sup:'%s ildə $37-a başa gəlir — domen, hostinq və texniki dəstək. Kod açıqdır.',supCta:'İnkişafı dəstəklə'}},
+
+ ml:{name:'മലയാളം',dir:'ltr',digits:null,font:'Noto+Sans+Malayalam:wght@400;600&family=Noto+Serif+Malayalam:wght@400;600',rev:false,s:{brand:'ഓപ്പൺ മുസ്ഹഫ്',
+  tag:'അക്കൗണ്ട് വേണ്ട · ട്രാക്കിംഗ് ഇല്ല · ഒന്നും ഈ ഉപകരണം വിടുന്നില്ല',
+  m1:'മുസ്ഹഫ്',m1s:'വായിക്കുക · മനഃപാഠമാക്കുക',m2:'പരിഭാഷയോടെ',m2s:'പഠിക്കുക',m3:'ആയത്ത്',m3s:'പഠനം · ഉദ്ധരണി',
+  lang:'ഭാഷ',goto:'പോകുക',surah:'സൂറ',page:'പേജ്',ref:'റഫറൻസ്',trans:'പരിഭാഷ',
+  recit:'പാരായണം',carry:'അടുത്ത പേജിലേക്ക് തുടരുക',mark:'വായിച്ചതായി അടയാളപ്പെടുത്തുക',reset:'ഖത്മ് പുനഃസജ്ജമാക്കുക',
+  resetAsk:'ഈ ഉപകരണത്തിലെ ഖത്മ് പുരോഗതി മായ്ക്കണോ?',
+  empty:'ഏതെങ്കിലും ആയത്തിൽ ടാപ്പ് ചെയ്യുക — അതിന്റെ പരിഭാഷയും ഉദ്ധരണിയും ഇവിടെ തുറക്കും.',
+  copy:'ഉദ്ധരണി പകർത്തുക',copied:'പകർത്തി',open:'ഈ ആയത്ത് തുറക്കുക',see:'പേജിൽ കാണുക',
+  t1:'ഹ്രസ്വം',t2:'പൂർണം',t3:'ഉദ്ധരണി',t4:'മാർക്ക്ഡൗൺ',
+  lSurah:'സൂറ · പുറം · നീളമനുസരിച്ച്',lPage:'പേജുകൾ',lRub:'റുബുഉൽ ഹിസ്ബ്',lJuz:'ജുസ്അ് · ഒരു മാസം',lManzil:'മൻസിൽ · ഒരാഴ്ച · ഉള്ളിൽ',
+  loading:'മുസ്ഹഫ് തുറക്കുന്നു…',fail:'ഉറവിടത്തിൽ എത്താനായില്ല',retry:'വീണ്ടും ശ്രമിക്കുക',by:'പരിഭാഷ',juz:'ജുസ്അ്',hizb:'ഹിസ്ബ്',
+  draft:'ഈ പരിഭാഷ കരടാണ് — തിരുത്തലുകൾ സ്വാഗതം',
+  sup:'%s പ്രവർത്തിപ്പിക്കാൻ വർഷം $37 ചെലവാകും — ഡൊമെയ്ൻ, ഹോസ്റ്റിംഗ്, സാങ്കേതിക പിന്തുണ. കോഡ് തുറന്നതാണ്.',supCta:'വികസനത്തെ പിന്തുണയ്ക്കുക'}},
+
+ ta:{name:'தமிழ்',dir:'ltr',digits:null,font:'Noto+Sans+Tamil:wght@400;600&family=Noto+Serif+Tamil:wght@400;600',rev:false,s:{brand:'ஓப்பன் முஸ்ஹஃப்',
+  tag:'கணக்கு இல்லை · கண்காணிப்பு இல்லை · எதுவும் இந்தச் சாதனத்தை விட்டு வெளியேறாது',
+  m1:'முஸ்ஹஃப்',m1s:'படி · மனனம் செய்',m2:'மொழிபெயர்ப்புடன்',m2s:'கற்றுக்கொள்',m3:'வசனம்',m3s:'ஆய்வு · மேற்கோள்',
+  lang:'மொழி',goto:'செல்',surah:'சூரா',page:'பக்கம்',ref:'குறிப்பு',trans:'மொழிபெயர்ப்பு',
+  recit:'ஓதுதல்',carry:'அடுத்த பக்கத்திற்குத் தொடரவும்',mark:'படித்ததாகக் குறி',reset:'கத்மை மீட்டமை',
+  resetAsk:'இந்தச் சாதனத்தில் கத்ம் முன்னேற்றத்தை அழிக்கவா?',
+  empty:'எந்த வசனத்தையும் தொடவும் — அதன் மொழிபெயர்ப்பும் மேற்கோளும் இங்கே திறக்கும்.',
+  copy:'மேற்கோளை நகலெடு',copied:'நகலெடுக்கப்பட்டது',open:'இந்த வசனத்தைத் திற',see:'பக்கத்தில் பார்',
+  t1:'சுருக்கம்',t2:'முழுமை',t3:'மேற்கோள்',t4:'மார்க்டவுன்',
+  lSurah:'சூரா · வெளிப்புறம் · நீளத்தின்படி',lPage:'பக்கங்கள்',lRub:'ருபுஉல் ஹிஸ்ப்',lJuz:'ஜுஸ் · ஒரு மாதம்',lManzil:'மன்ஸில் · ஒரு வாரம் · உட்புறம்',
+  loading:'முஸ்ஹஃப் திறக்கிறது…',fail:'மூலத்தை அணுக முடியவில்லை',retry:'மீண்டும் முயற்சி',by:'மொழி.',juz:'ஜுஸ்',hizb:'ஹிஸ்ப்',
+  draft:'இந்த மொழிபெயர்ப்பு வரைவு — திருத்தங்கள் வரவேற்கப்படுகின்றன',
+  sup:'%s ஆண்டுக்கு $37 செலவாகிறது — டொமைன், ஹோஸ்டிங் மற்றும் தொழில்நுட்ப ஆதரவு. நிரல் திறந்தது.',supCta:'மேம்பாட்டை ஆதரிக்கவும்'}},
+
+ om:{name:'Oromoo',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Mus-hafa',
+  tag:'herrega hin barbaachisu · hordoffiin hin jiru · wanti tokko meeshaa kana hin gadhiisu',
+  m1:'Mus-hafa',m1s:'dubbisi · qalbeeffadhu',m2:'Hiikkaa waliin',m2s:'baradhu',m3:'Aayata',m3s:'qorannoo · eeruu',
+  lang:'Afaan',goto:'Deemi',surah:'Suuraa',page:'Fuula',ref:'Eeruu',trans:'Hiikkaa',
+  recit:'Qaraatii',carry:'Fuula itti aanutti itti fufi',mark:'Dubbifame jedhii mallatteessi',reset:'Khatmaa haaromsi',
+  resetAsk:'Guddina khatmaa meeshaa kana irraa haquu?',
+  empty:'Aayata kamiyyuu tuqi — hiikkaan isaatii fi eeruun isaa asitti banama.',
+  copy:'Eeruu waraabi',copied:'Waraabame',open:'Aayata kana bani',see:'Fuula irratti ilaali',
+  t1:'Gabaabaa',t2:'Guutuu',t3:'Eeruu',t4:'Markdown',
+  lSurah:'suuraa · alaa · dheerina irratti',lPage:'fuulota',lRub:'rubuul hizbii',lJuz:'juzii · jiʼa tokko',lManzil:'manzilii · torban tokko · keessa',
+  loading:'Mus-hafni banamaa jira…',fail:'Madda bira gaʼuun hin dandaʼamne',retry:'Irra deebiʼii yaali',by:'hiik.',juz:'Juzii',hizb:'Hizbii',
+  draft:'Hiikkaan kun wixinee dha — sirreeffamni ni simatama',
+  sup:'%s waggaatti $37 baasii qaba — domeenii, hostiingii fi deeggarsa teeknikaa. Koodichi banaa dha.',supCta:'Guddina deeggari'}},
+
+ am:{name:'አማርኛ',dir:'ltr',digits:null,font:'Noto+Sans+Ethiopic:wght@400;600&family=Noto+Serif+Ethiopic:wght@400;600',rev:false,s:{brand:'ኦፐን ሙስሐፍ',
+  tag:'መለያ የለም · ክትትል የለም · ምንም ከዚህ መሣሪያ አይወጣም',
+  m1:'ሙስሐፍ',m1s:'አንብብ · በቃል ያዝ',m2:'ከትርጉም ጋር',m2s:'ተማር',m3:'አንቀጽ',m3s:'ጥናት · ጥቅስ',
+  lang:'ቋንቋ',goto:'ሂድ ወደ',surah:'ሱራ',page:'ገጽ',ref:'ማጣቀሻ',trans:'ትርጉም',
+  recit:'ንባብ',carry:'ወደ ቀጣዩ ገጽ ቀጥል',mark:'እንደተነበበ ምልክት አድርግ',reset:'ኸትማን እንደገና ጀምር',
+  resetAsk:'የኸትማ እድገትን ከዚህ መሣሪያ ይሰረዝ?',
+  empty:'ማንኛውንም አንቀጽ ይንኩ — ትርጉሙና ማጣቀሻው እዚህ ይከፈታል።',
+  copy:'ማጣቀሻ ቅዳ',copied:'ተቀድቷል',open:'ይህን አንቀጽ ክፈት',see:'በገጹ ላይ ተመልከት',
+  t1:'አጭር',t2:'ሙሉ',t3:'ጥቅስ',t4:'ማርክዳውን',
+  lSurah:'ሱራ · ውጪ · በርዝመት',lPage:'ገጾች',lRub:'ሩብዑል ሒዝብ',lJuz:'ጁዝእ · አንድ ወር',lManzil:'መንዚል · አንድ ሳምንት · ውስጥ',
+  loading:'ሙስሐፍ እየተከፈተ ነው…',fail:'ምንጩን መድረስ አልተቻለም',retry:'እንደገና ሞክር',by:'ትርጉም',juz:'ጁዝእ',hizb:'ሒዝብ',
+  draft:'ይህ ትርጉም ረቂቅ ነው — እርማቶች እንኳን ደህና መጡ',
+  sup:'%s በዓመት $37 ያስወጣል — ጎራ፣ ማስተናገጃ እና ቴክኒካዊ ድጋፍ። ኮዱ ክፍት ነው።',supCta:'ልማትን ደግፍ'}},
+
+ fr:{name:'Français',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Muṣḥaf',
+  tag:'pas de compte · pas de suivi · rien ne quitte cet appareil',
+  m1:'Muṣḥaf',m1s:'lire · mémoriser',m2:'Parallèle',m2s:'apprendre',m3:'Verset',m3s:'étudier · citer',
+  lang:'Langue',goto:'Aller à',surah:'Sourate',page:'Page',ref:'Référence',trans:'Traduction',
+  recit:'Récitation',carry:'Continuer à la page suivante',mark:'Marquer comme lu',reset:'Réinitialiser la khatma',
+  resetAsk:'Effacer la progression de la khatma sur cet appareil ?',
+  empty:'Touchez un verset — sa traduction et sa citation s’ouvrent ici.',
+  copy:'Copier la citation',copied:'Copié',open:'Ouvrir ce verset',see:'Voir sur la page',
+  t1:'Court',t2:'Complet',t3:'Bloc',t4:'Markdown',
+  lSurah:'sourate · extérieur · par longueur',lPage:'pages',lRub:"rub' al-ḥizb",lJuz:"juz' · un mois",lManzil:'manzil · une semaine · intérieur',
+  loading:'Ouverture du muṣḥaf…',fail:'Source injoignable',retry:'Réessayer',by:'trad.',juz:'Juz',hizb:'Hizb',
+  draft:'Cette traduction est une ébauche — corrections bienvenues',
+  sup:'%s coûte 37 $ par an — domaine, hébergement et support technique. Le code est ouvert.',supCta:'Soutenir le développement'}},
+
+ es:{name:'Español',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Mus-haf',
+  tag:'sin cuenta · sin rastreo · nada sale de este dispositivo',
+  m1:'Mus-haf',m1s:'leer · memorizar',m2:'Con traducción',m2s:'aprender',m3:'Aleya',m3s:'estudiar · citar',
+  lang:'Idioma',goto:'Ir a',surah:'Sura',page:'Página',ref:'Referencia',trans:'Traducción',
+  recit:'Recitación',carry:'Continuar en la página siguiente',mark:'Marcar como leída',reset:'Reiniciar la jatma',
+  resetAsk:'¿Borrar el progreso de la jatma en este dispositivo?',
+  empty:'Toque cualquier aleya — su traducción y su cita se abren aquí.',
+  copy:'Copiar la cita',copied:'Copiado',open:'Abrir esta aleya',see:'Verla en la página',
+  t1:'Corta',t2:'Completa',t3:'Cita',t4:'Markdown',
+  lSurah:'sura · exterior · por extensión',lPage:'páginas',lRub:"rubʿ al-hizb",lJuz:'yuz · un mes',lManzil:'manzil · una semana · interior',
+  loading:'Abriendo el mus-haf…',fail:'No se puede acceder a la fuente',retry:'Reintentar',by:'trad.',juz:'Yuz',hizb:'Hizb',
+  draft:'Esta traducción es un borrador — se agradecen correcciones',
+  sup:'%s cuesta 37 $ al año — dominio, alojamiento y soporte técnico. El código es abierto.',supCta:'Apoyar el desarrollo'}},
+
+ de:{name:'Deutsch',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Mushaf',
+  tag:'kein Konto · kein Tracking · nichts verlässt dieses Gerät',
+  m1:'Mushaf',m1s:'lesen · auswendig lernen',m2:'Mit Übersetzung',m2s:'lernen',m3:'Vers',m3s:'studieren · zitieren',
+  lang:'Sprache',goto:'Gehe zu',surah:'Sure',page:'Seite',ref:'Referenz',trans:'Übersetzung',
+  recit:'Rezitation',carry:'Auf der nächsten Seite fortfahren',mark:'Als gelesen markieren',reset:'Khatma zurücksetzen',
+  resetAsk:'Khatma-Fortschritt auf diesem Gerät löschen?',
+  empty:'Tippen Sie auf einen Vers — Übersetzung und Zitat öffnen sich hier.',
+  copy:'Zitat kopieren',copied:'Kopiert',open:'Diesen Vers öffnen',see:'Auf der Seite ansehen',
+  t1:'Kurz',t2:'Vollständig',t3:'Blockzitat',t4:'Markdown',
+  lSurah:'Sure · außen · nach Länge',lPage:'Seiten',lRub:'Rubʿ al-Hizb',lJuz:'Dschuzʾ · ein Monat',lManzil:'Manzil · eine Woche · innen',
+  loading:'Mushaf wird geöffnet…',fail:'Quelle nicht erreichbar',retry:'Erneut versuchen',by:'Übers.',juz:'Dschuzʾ',hizb:'Hizb',
+  draft:'Diese Übersetzung ist ein Entwurf — Korrekturen willkommen',
+  sup:'%s kostet 37 $ im Jahr — Domain, Hosting und technischer Support. Der Code ist offen.',supCta:'Entwicklung unterstützen'}},
+
+ ms:{name:'Bahasa Melayu',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Mushaf',
+  tag:'tiada akaun · tiada penjejakan · tiada apa keluar dari peranti ini',
+  m1:'Mushaf',m1s:'baca · hafaz',m2:'Terjemahan',m2s:'belajar',m3:'Ayat',m3s:'kaji · petik',
+  lang:'Bahasa',goto:'Pergi ke',surah:'Surah',page:'Halaman',ref:'Rujukan',trans:'Terjemahan',
+  recit:'Bacaan',carry:'Teruskan ke halaman seterusnya',mark:'Tanda telah dibaca',reset:'Set semula khatam',
+  resetAsk:'Padam kemajuan khatam pada peranti ini?',
+  empty:'Ketik mana-mana ayat — terjemahan dan petikannya muncul di sini.',
+  copy:'Salin petikan',copied:'Disalin',open:'Buka ayat ini',see:'Lihat pada halaman',
+  t1:'Ringkas',t2:'Penuh',t3:'Petikan',t4:'Markdown',
+  lSurah:'surah · luar · ikut panjang',lPage:'halaman',lRub:"rubu' hizb",lJuz:'juzuk · sebulan',lManzil:'manzil · seminggu · dalam',
+  loading:'Membuka mushaf…',fail:'Tidak dapat mencapai sumber',retry:'Cuba lagi',by:'terj.',juz:'Juzuk',hizb:'Hizb',
+  draft:'Terjemahan ini ialah draf — pembetulan dialu-alukan',
+  sup:'%s memerlukan $37 setahun — domain, hosting dan sokongan teknikal. Kodnya terbuka.',supCta:'Sokong pembangunan'}},
+
+ sq:{name:'Shqip',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Mus’haf',
+  tag:'pa llogari · pa gjurmim · asgjë nuk largohet nga kjo pajisje',
+  m1:'Mus’haf',m1s:'lexo · mëso përmendsh',m2:'Me përkthim',m2s:'mëso',m3:'Ajet',m3s:'studim · citim',
+  lang:'Gjuha',goto:'Shko te',surah:'Sure',page:'Faqe',ref:'Referencë',trans:'Përkthim',
+  recit:'Recitim',carry:'Vazhdo në faqen tjetër',mark:'Shëno si të lexuar',reset:'Rinis hatmen',
+  resetAsk:'Të fshihet ecuria e hatmes në këtë pajisje?',
+  empty:'Prekni çdo ajet — përkthimi dhe citimi i tij hapen këtu.',
+  copy:'Kopjo citimin',copied:'U kopjua',open:'Hap këtë ajet',see:'Shihe në faqe',
+  t1:'Shkurt',t2:'I plotë',t3:'Citim',t4:'Markdown',
+  lSurah:'sure · e jashtme · sipas gjatësisë',lPage:'faqe',lRub:'rubu’ul hizb',lJuz:'xhuz · një muaj',lManzil:'menzil · një javë · e brendshme',
+  loading:'Mus’hafi po hapet…',fail:'Burimi nuk arrihet',retry:'Provo sërish',by:'përkth.',juz:'Xhuz',hizb:'Hizb',
+  draft:'Ky përkthim është draft — korrigjimet mirëpriten',
+  sup:'%s kushton 37 $ në vit — domen, strehim dhe mbështetje teknike. Kodi është i hapur.',supCta:'Mbështet zhvillimin'}},
+
+ bs:{name:'Bosanski',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Mushaf',
+  tag:'bez računa · bez praćenja · ništa ne napušta ovaj uređaj',
+  m1:'Mushaf',m1s:'čitaj · uči napamet',m2:'Sa prijevodom',m2s:'uči',m3:'Ajet',m3s:'proučavaj · citiraj',
+  lang:'Jezik',goto:'Idi na',surah:'Sura',page:'Stranica',ref:'Referenca',trans:'Prijevod',
+  recit:'Učenje',carry:'Nastavi na sljedeću stranicu',mark:'Označi kao pročitano',reset:'Poništi hatmu',
+  resetAsk:'Obrisati napredak hatme na ovom uređaju?',
+  empty:'Dodirnite bilo koji ajet — njegov prijevod i citat otvaraju se ovdje.',
+  copy:'Kopiraj citat',copied:'Kopirano',open:'Otvori ovaj ajet',see:'Pogledaj na stranici',
+  t1:'Kratko',t2:'Potpuno',t3:'Citat',t4:'Markdown',
+  lSurah:'sura · vanjski · po dužini',lPage:'stranice',lRub:'rub’ul hizb',lJuz:'džuz · mjesec',lManzil:'menzil · sedmica · unutrašnji',
+  loading:'Mushaf se otvara…',fail:'Izvor nije dostupan',retry:'Pokušaj ponovo',by:'prijev.',juz:'Džuz',hizb:'Hizb',
+  draft:'Ovaj prijevod je nacrt — ispravke su dobrodošle',
+  sup:'%s košta 37 $ godišnje — domena, hosting i tehnička podrška. Kod je otvoren.',supCta:'Podrži razvoj'}},
+};
+
+const LKEY='mushaf.lang', RKEY='mushaf.read.v1';
+let mem=null;
+const lsGet=k=>{try{return localStorage.getItem(k);}catch(e){return null;}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
+function loadRead(){ try{const r=lsGet(RKEY);return new Set(r?JSON.parse(r):[]);}catch(e){return mem=mem||new Set();} }
+function saveRead(s){ try{lsSet(RKEY,JSON.stringify([...s]));}catch(e){mem=s;} }
+let read=loadRead();
+
+const KKEY='mushaf.khatma.v1';
+function loadKh(){ try{return JSON.parse(lsGet(KKEY))||{done:0,history:[]};}catch(e){return {done:0,history:[]};} }
+function saveKh(){ lsSet(KKEY,JSON.stringify(kh)); }
+let kh=loadKh();
+
+function detectLang(){
+  const saved=lsGet(LKEY); if(saved&&LANGS[saved]) return saved;
+  for(const l of (navigator.languages||[navigator.language||'en'])){
+    const c=String(l).toLowerCase().split('-')[0];
+    if(LANGS[c]) return c;
+  }
+  return 'en';
+}
+const state={ lang:detectLang(), mode:'mushaf', page:1, sel:null, tab:'full',
+              arEd:'quran-uthmani', trEd:'en.sahih', reciter:'ar.alafasy', continuous:true };
+const L=()=>LANGS[state.lang]; const T=k=>L().s[k];
+
+/* locale digits for interface numbers; the muṣḥaf itself always uses ٠-٩ */
+const AR_DIGITS='٠١٢٣٤٥٦٧٨٩';
+const arD=n=>String(n).replace(/\d/g,d=>AR_DIGITS[d]);
+const dig=n=>{ const d=L().digits; return d?String(n).replace(/\d/g,x=>d[x]):String(n); };
+
+let surahs=[], cumAyah=[], allEds=[], translations=[], reciters=[];
+const juzCache={}, ayahCache={};
+
+const statusEl=$('#status'), dot=$('#dot'), statusText=$('#statusText');
+function setStatus(k,t,retry){
+  statusEl.classList.remove('hidden'); dot.className='dot'+(k==='warn'?' warn':''); statusText.textContent=t;
+  const o=statusEl.querySelector('button'); if(o)o.remove();
+  if(retry){const b=document.createElement('button');b.textContent=T('retry');b.onclick=retry;statusEl.appendChild(b);}
+}
+const hideStatus=()=>statusEl.classList.add('hidden');
+
+async function getJSON(u){
+  const r=await fetch(u); if(!r.ok) throw new Error('HTTP '+r.status);
+  const j=await r.json(); if(j.code!==200) throw new Error(j.status||'bad response'); return j.data;
+}
+
+/* ══ language application ═══════════════════════════════ */
+let fontLink=null;
+function applyLang(){
+  const l=L();
+  document.documentElement.lang=state.lang;
+  document.documentElement.dir=l.dir;
+  if(l.font){
+    if(!fontLink){ fontLink=document.createElement('link'); fontLink.rel='stylesheet'; document.head.appendChild(fontLink); }
+    fontLink.href=`https://fonts.googleapis.com/css2?family=${l.font}&display=swap`;
+  }
+  $('#brand').textContent=T('brand');
+  $('#arTitle').textContent='المصحف';
+  $('#arTitle').style.display=(l.dir==='rtl')?'none':'';   // don't print المصحف twice
+  $('#tagline').textContent=T('tag');
+  const dn=$('#draftNote');
+  if(dn){ dn.textContent = l.rev ? '' : T('draft'); }
+  $('#l_lang').textContent=T('lang');
+  $('#l_goto').textContent=T('goto');
+  $('#l_trans').textContent=T('trans');
+  $('#l_recit').textContent=T('recit');
+  $('#l_carry').textContent=T('carry');
+  $('#markBtn').textContent=T('mark');
+  $('#resetBtn').textContent=T('reset');
+  $('#pageIn').placeholder=T('page');
+  $('#refIn').placeholder='2:255';
+  $('#surahSel').setAttribute('aria-label',T('surah'));
+  const chev=d=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" `+
+    `stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="`+
+    (d==='l'?'M15 5 L8 12 L15 19':'M9 5 L16 12 L9 19')+`"/></svg>`;
+  $('#prev').innerHTML=chev(l.dir==='rtl'?'r':'l');
+  $('#next').innerHTML=chev(l.dir==='rtl'?'l':'r');
+  $('#prev').setAttribute('aria-label',T('page')+' −');
+  $('#next').setAttribute('aria-label',T('page')+' +');
+  $('#density').innerHTML='';
+  [['mushaf','m1','m1s'],['parallel','m2','m2s'],['ayah','m3','m3s']].forEach(([k,a,b])=>{
+    const btn=document.createElement('button');
+    btn.className='den'; btn.type='button'; btn.dataset.m=k;
+    btn.innerHTML=`<span class="t">${esc(T(a))}</span><span class="s">${esc(T(b))}</span>`;
+    btn.onclick=()=>setMode(k);
+    $('#density').appendChild(btn);
+  });
+  $('#legend').innerHTML=[['114','lSurah'],['604','lPage'],['240','lRub'],['30','lJuz'],['7','lManzil']]
+    .map(([n,k])=>`<b>${dig(n)}</b><span>${esc(T(k))}</span>`).join('');
+  $('#foot').innerHTML=footHTML();
+  paintDensity();
+}
+function footHTML(){
+  // The support line stays English on purpose: it is an ask, not part of the reading,
+  // and a mistranslated request for money is worse than one nobody reads.
+  return `<b>alquran.cloud</b> — ${esc(T('trans'))}, ${esc(T('recit'))}. `+
+    `<a href="https://alquran.cloud" target="_blank" rel="noopener">alquran.cloud</a> · cdn.islamic.network.<br>`+
+    `<span style="opacity:.85">The Qur'an itself is never translated here — every translation is a published work, `+
+    `and the translator is always named. Interface strings are a first pass and need a native speaker's review.</span>`+
+    `<div class="support">${esc(T('sup')).replace('%s',esc(T('brand')))} `+
+    `<a href="${KOFI}" target="_blank" rel="noopener">${esc(T('supCta'))} ${L().dir==='rtl'?'←':'→'}</a></div>`;
+}
+
+/* ══ data ═══════════════════════════════════════════════ */
+async function fetchJuz(j){
+  if(juzCache[j]) return juzCache[j];
+  const [ar,tr]=await Promise.all([getJSON(`${API}/juz/${j}/${state.arEd}`),getJSON(`${API}/juz/${j}/${state.trEd}`)]);
+  const byPage={},trByNo={}; let min=1e9,max=0;
+  (ar.ayahs||[]).forEach(a=>{(byPage[a.page]=byPage[a.page]||[]).push(a); if(a.page<min)min=a.page; if(a.page>max)max=a.page;});
+  (tr.ayahs||[]).forEach(a=>{trByNo[a.number]=a.text;});
+  return juzCache[j]={byPage,trByNo,min,max};
+}
+async function locateJuz(n){
+  let j=Math.min(30,Math.max(1,Math.floor((n-2)/20)+1));
+  for(let g=0;g<8;g++){
+    const c=await fetchJuz(j);
+    if(n<c.min){ if(j<=1)return 1; j--; continue; }
+    if(n>c.max){ if(j>=30)return 30; j++; continue; }
+    return j;
+  }
+  return j;
+}
+async function pageData(n){
+  const j=await locateJuz(n), seen=new Map(), trs={};
+  const take=c=>{(c.byPage[n]||[]).forEach(a=>seen.set(a.number,a)); Object.assign(trs,c.trByNo);};
+  const c=juzCache[j]; take(c);
+  if(n===c.min&&j>1) take(await fetchJuz(j-1));
+  if(n===c.max&&j<30) take(await fetchJuz(j+1));
+  return { ayahs:[...seen.values()].sort((a,b)=>a.number-b.number), trs, juz:j };
+}
+async function ayahData(s,a){
+  const k=`${s}:${a}|${state.trEd}`;
+  if(ayahCache[k]) return ayahCache[k];
+  const [ar,tr]=await Promise.all([getJSON(`${API}/ayah/${s}:${a}/${state.arEd}`),getJSON(`${API}/ayah/${s}:${a}/${state.trEd}`)]);
+  return ayahCache[k]={ar,tr};
+}
+const surahOf=g=>{ for(let i=0;i<cumAyah.length;i++) if(g<=cumAyah[i]) return surahs[i]; return surahs[113]; };
+const refOf=g=>{ const s=surahOf(g); const b=s.number>1?cumAyah[s.number-2]:0; return {s,a:g-b}; };
+
+/* ══ ornament ═══════════════════════════════════════════ */
+const cv=$('#clock'), g2=cv.getContext('2d');
+let W=0,H=0,S=1;
+const RINGS=[{k:'surah',r0:.900,r1:1.000,gap:.0012},{k:'page',r0:.800,r1:.885,gap:0},
+             {k:'rub',r0:.700,r1:.785,gap:0},{k:'juz',r0:.560,r1:.685,gap:.0022},
+             {k:'manzil',r0:.400,r1:.545,gap:.006}];
+function sizeClock(){
+  const r=cv.getBoundingClientRect(); S=Math.min(devicePixelRatio||1,2);
+  W=Math.max(1,Math.round(r.width)); H=Math.max(1,Math.round(r.height));
+  cv.width=W*S; cv.height=H*S; g2.setTransform(S,0,0,S,0,0); paintClock();
+}
+addEventListener('resize',sizeClock);
+let wasNarrow=matchMedia('(max-width:1000px)').matches;
+addEventListener('resize',()=>{ const n=matchMedia('(max-width:1000px)').matches;
+  if(n!==wasNarrow){ wasNarrow=n; render(); } });
+function seg(cx,cy,U,ring,a0,a1,fill,stroke){
+  g2.beginPath(); g2.arc(cx,cy,U*ring.r1,a0,a1); g2.arc(cx,cy,U*ring.r0,a1,a0,true); g2.closePath();
+  g2.fillStyle=fill; g2.fill();
+  if(stroke){ g2.strokeStyle='rgba(11,8,20,.85)'; g2.lineWidth=1; g2.stroke(); }
+}
+const pageRange=(c,i)=>[Math.round(i*PAGES/c)+1,Math.round((i+1)*PAGES/c)];
+function fracRead(p0,p1){ let d=0,t=0; for(let p=p0;p<=p1;p++){t++; if(read.has(p))d++;} return t?d/t:0; }
+function paintClock(){
+  if(!W||!surahs.length) return;
+  const cx=W/2,cy=H/2,U=Math.min(W,H)/2;
+  g2.clearRect(0,0,W,H);
+  const cur=refOf(state.sel||(spread[0]?spread[0].number:1));
+  for(const ring of RINGS){
+    if(ring.k==='surah'){
+      let acc=0;
+      surahs.forEach(s=>{
+        const w=s.numberOfAyahs/AYAHS;
+        const a0=acc*TAU-Math.PI/2+ring.gap,a1=(acc+w)*TAU-Math.PI/2-ring.gap; acc+=w;
+        seg(cx,cy,U,ring,a0,a1, s.number===cur.s.number?'rgba(176,72,62,.95)'
+          : s.revelationType==='Medinan'?'rgba(229,163,58,.3)':'rgba(51,66,126,.6)',false);
+      });
+      continue;
+    }
+    const c=ring.k==='page'?PAGES:ring.k==='rub'?240:ring.k==='juz'?30:7;
+    for(let i=0;i<c;i++){
+      let p0,p1;
+      if(ring.k==='juz'&&juzCache[i+1]){p0=juzCache[i+1].min;p1=juzCache[i+1].max;} else [p0,p1]=pageRange(c,i);
+      const f=fracRead(p0,p1);
+      seg(cx,cy,U,ring,(i/c)*TAU-Math.PI/2+ring.gap,((i+1)/c)*TAU-Math.PI/2-ring.gap,
+          f>0?`rgba(229,163,58,${.18+f*.62})`:'rgba(51,66,126,.4)', c<=30);
+    }
+  }
+  const ang=((state.page-.5)/PAGES)*TAU-Math.PI/2;
+  g2.strokeStyle='rgba(176,72,62,.9)'; g2.lineWidth=1.6;
+  g2.beginPath(); g2.moveTo(cx+Math.cos(ang)*U*.38,cy+Math.sin(ang)*U*.38);
+  g2.lineTo(cx+Math.cos(ang)*U*.9,cy+Math.sin(ang)*U*.9); g2.stroke();
+  $('#pct').textContent=dig(Math.round(read.size/PAGES*100))+'%';
+  $('#pgs').textContent=dig(read.size)+' / '+dig(PAGES);
+  const kc=$('#khCount');
+  if(kc){ kc.textContent = kh.done ? '۞ '.repeat(Math.min(kh.done,5)).trim()+(kh.done>5?' ×'+dig(kh.done):'') : '';
+          kc.title = kh.done ? kh.history.slice(-5).join(' · ') : ''; }
+  const alt=$('#clockAlt');
+  if(alt) alt.textContent=`${T('page')} ${dig(state.page)} / ${dig(PAGES)} · ${dig(read.size)} ${T('lPage')} · ${dig(Math.round(read.size/PAGES*100))}%`;
+}
+cv.onclick=e=>{
+  const r=cv.getBoundingClientRect();
+  const x=e.clientX-r.left-W/2,y=e.clientY-r.top-H/2,U=Math.min(W,H)/2;
+  const d=Math.hypot(x,y)/U; if(d<.38||d>1.01) return;
+  let a=Math.atan2(y,x)+Math.PI/2; if(a<0)a+=TAU;
+  if(d>=.9){ const t=a/TAU*AYAHS; let acc=0;
+    for(const s of surahs){ acc+=s.numberOfAyahs; if(t<=acc){ gotoRef(s.number,1); return; } } return; }
+  goPage(Math.min(PAGES,Math.max(1,Math.round(a/TAU*PAGES)+1)));
+};
+function markRead(p){
+  if(p<1||p>PAGES||read.has(p)) return;
+  read.add(p); saveRead(read);
+  if(read.size>=PAGES){                       // the circle closes, and a new one opens
+    kh.done++; kh.history.push(new Date().toISOString().slice(0,10)); saveKh();
+    read=new Set(); saveRead(read);
+  }
+  paintClock();
+}
+
+/* ══ rendering ══════════════════════════════════════════ */
+const rosette=n=>`<svg class="rosette" width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
+ <g fill="none" stroke="rgba(229,163,58,.7)" stroke-width=".9"><circle cx="15" cy="15" r="10.6"/>
+ <path d="M15 3.4 L20.2 9.6 L27.4 10 L23 15 L27.4 20 L20.2 20.4 L15 26.6 L9.8 20.4 L2.6 20 L7 15 L2.6 10 L9.8 9.6 Z"/></g>
+ <text x="15" y="18.8" text-anchor="middle">${arD(n)}</text></svg>`;
+const CORNER=`<svg viewBox="0 0 20 20"><g fill="none" stroke="rgba(229,163,58,.55)" stroke-width="1">
+ <path d="M10 1.5 L14 7 L19 7.5 L15.5 10 L19 12.5 L14 13 L10 18.5 L6 13 L1 12.5 L4.5 10 L1 7.5 L6 7 Z"/></g></svg>`;
+
+let spread=[], trMap={};
+function head(s){
+  let h=`<div class="cartouche"><span class="nm">${esc(s.name||'')}</span>`+
+    `<span class="sub">${esc(s.englishName||'')} · ${s.numberOfAyahs||''} · ${esc(s.revelationType||'')}</span></div>`;
+  if(s.number!==1&&s.number!==9) h+=`<div class="basmala">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</div>`;
+  return h;
+}
+async function paintLeaf(n,folio,fl,fn,fr,leaf){
+  if(n>PAGES){ folio.innerHTML=''; fl.textContent=fn.textContent=fr.textContent=''; return []; }
+  const {ayahs,trs,juz}=await pageData(n);
+  Object.assign(trMap,trs);
+  let html='',last=null;
+  for(const a of ayahs){
+    const s=a.surah||surahOf(a.number);
+    if(a.numberInSurah===1) html+=head(s);
+    html+=`<span class="v" data-no="${a.number}">${esc(a.text)}</span>${rosette(a.numberInSurah)} `;
+    last=s;
+  }
+  folio.innerHTML=html||'<div style="opacity:.3;text-align:center;font-size:14px">—</div>';
+  fl.textContent=last?last.englishName:''; fn.textContent=arD(n);
+  fr.textContent=ayahs[0]?`${T('juz')} ${arD(juz)} · ${T('hizb')} ${arD(Math.ceil((ayahs[0].hizbQuarter||1)/4))}`:'';
+  leaf.querySelectorAll('svg.corner').forEach(c=>c.remove());
+  ['tl','tr','bl','br'].forEach(p=>{
+    const d=document.createElement('div'); d.innerHTML=CORNER;
+    const svg=d.firstChild; svg.setAttribute('class','corner '+p); leaf.appendChild(svg);
+  });
+  return ayahs;
+}
+
+async function render(){
+  const M=state.mode;
+  $('#spread').classList.toggle('hide',M!=='mushaf');
+  $('#par').classList.toggle('hide',M!=='parallel');
+  $('#solo').classList.toggle('hide',M!=='ayah');
+  trMap={};
+  try{
+    if(M==='ayah'){
+      const gN=state.sel||1,{s,a}=refOf(gN);
+      setStatus('',T('loading'));
+      const {ar,tr}=await ayahData(s.number,a);
+      state.page=ar.page; state.sel=ar.number; trMap[ar.number]=tr.text; spread=[ar];
+      $('#soloAr').innerHTML=esc(ar.text)+rosette(ar.numberInSurah);
+      $('#soloTr').textContent=tr.text;
+      const who=(translations.find(t=>t.identifier===state.trEd)||{}).englishName||state.trEd;
+      const bits=[`<span class="hi">${esc(s.name||s.englishName)}</span>`,esc(s.englishName),
+        `${s.number}:${a}`,esc(s.revelationType),`${esc(T('juz'))} ${dig(ar.juz)}`,`${esc(T('page'))} ${dig(ar.page)}`,
+        `${esc(T('by'))} ${esc(who)}`];
+      if(ar.sajda) bits.push('<span class="sj">Sajda</span>');
+      $('#soloMeta').innerHTML=bits.join('<span style="opacity:.3">·</span>');
+      $('#where').textContent=`${s.number}:${a} · ${T('page')} ${dig(ar.page)}`;
+      $('#prev').disabled=state.sel<=1; $('#next').disabled=state.sel>=AYAHS;
+      stopDwell();                              // one āyah is not a page
+    } else if(M==='parallel'){
+      setStatus('',T('loading'));
+      const {ayahs,trs,juz}=await pageData(state.page);
+      Object.assign(trMap,trs); spread=ayahs;
+      let html='';
+      for(const a of ayahs){
+        const s=a.surah||surahOf(a.number);
+        if(a.numberInSurah===1) html+=head(s);
+        html+=`<div class="prow" data-no="${a.number}"><div class="a">${esc(a.text)}${rosette(a.numberInSurah)}</div>`+
+              `<div class="t">${esc(trs[a.number]||'—')}</div><div class="n">${s.number}:${a.numberInSurah}</div></div>`;
+      }
+      $('#par').innerHTML=html;
+      $('#where').textContent=`${T('page')} ${dig(state.page)} / ${dig(PAGES)} · ${T('juz')} ${dig(juz)}`;
+      $('#prev').disabled=state.page<=1; $('#next').disabled=state.page>=PAGES;
+      startDwell([state.page],18000);
+    } else {
+      const two=!narrow();                       // a phone gets one leaf, not half a spread
+      const R=two?(state.page%2===1?state.page:state.page-1):state.page, Lp=two?R+1:0;
+      setStatus('',T('loading'));
+      const a1=await paintLeaf(R,$('#folioR'),$('#fRl'),$('#fRn'),$('#fRr'),$('#leafR'));
+      const a2=two?await paintLeaf(Lp,$('#folioL'),$('#fLl'),$('#fLn'),$('#fLr'),$('#leafL')):[];
+      spread=[...a1,...a2];
+      $('#where').textContent=two
+        ? `${T('page')} ${dig(R)}${Lp<=PAGES?'–'+dig(Lp):''} / ${dig(PAGES)}`
+        : `${T('page')} ${dig(R)} / ${dig(PAGES)}`;
+      $('#prev').disabled=R<=1; $('#next').disabled=(two?Lp:R)>=PAGES;
+      startDwell(two?[R,Lp]:[R], two?30000:18000);
+    }
+    hideStatus();
+  }catch(e){ setStatus('warn',T('fail')+' — '+e.message,render); return; }
+  if(spread[0]){
+    const s=spread[0].surah||surahOf(spread[0].number);
+    $('#surahSel').value=s.number;
+    $('#loc').textContent=`${s.englishName} · ${T('page')} ${dig(state.page)}`;
+  }
+  $('#pageIn').value=state.page;
+  document.querySelectorAll('.v').forEach(el=>el.onclick=()=>select(+el.dataset.no));
+  document.querySelectorAll('.prow').forEach(el=>el.onclick=()=>select(+el.dataset.no));
+  // never show an empty drawer: if the selection isn't on this page, take the first āyah.
+  // one highlighted verse with its translation below teaches the interaction in a glance,
+  // which a sentence of instructions demonstrably did not.
+  if(spread.length && !spread.some(a=>a.number===state.sel)) state.sel=spread[0].number;
+  markSel(); study(); paintClock();
+}
+function markSel(){
+  document.querySelectorAll('.v').forEach(el=>el.classList.toggle('sel',+el.dataset.no===state.sel));
+  document.querySelectorAll('.prow').forEach(el=>el.classList.toggle('sel',+el.dataset.no===state.sel));
+}
+function select(no){ state.sel=no; markSel(); study(); paintClock(); }
+
+/* ══ study + citation ═══════════════════════════════════ */
+const TABKEYS=[['short','t1'],['full','t2'],['block','t3'],['markdown','t4']];
+function citation(){
+  if(!state.sel) return '';
+  const {s,a}=refOf(state.sel), ref=`${s.number}:${a}`;
+  const who=(translations.find(t=>t.identifier===state.trEd)||{}).englishName||state.trEd;
+  const ar=(spread.find(x=>x.number===state.sel)||{}).text||'';
+  const tx=trMap[state.sel]||'';
+  switch(state.tab){
+    case 'short': return `Qur'an ${ref}`;
+    case 'full': return `Qur'an, Sūrat ${s.englishName} (${s.englishNameTranslation}) ${ref}, trans. ${who}.`;
+    case 'block': return `${ar}\n\n"${tx}"\n\n— Qur'an ${ref}, Sūrat ${s.englishName}, trans. ${who}`;
+    default: return `> ${tx}\n>\n> — *Qur'an ${ref}*, Sūrat ${s.englishName}, trans. ${who}`;
+  }
+}
+function study(){
+  const d=$('#study');
+  if(!state.sel){ d.className='study empty'; d.textContent=T('empty'); return; }
+  const {s,a}=refOf(state.sel);
+  const who=(translations.find(t=>t.identifier===state.trEd)||{}).englishName||state.trEd;
+  d.className='study';
+  d.innerHTML=`<div class="ref">${esc(s.englishName)} · ${s.number}:${a} · ${esc(T('page'))} ${dig(state.page)}</div>`+
+    (state.mode!=='ayah'?`<p class="tx">${esc(trMap[state.sel]||'—')}</p>`:'')+
+    `<div class="tabs" role="tablist">${TABKEYS.map(([k,lk])=>
+      `<button class="tab" type="button" role="tab" data-k="${k}" aria-selected="${k===state.tab}">${esc(T(lk))}</button>`).join('')}</div>`+
+    `<div class="cite" id="citeOut"></div>`+
+    `<div class="row"><button class="ghost" id="copyBtn">${esc(T('copy'))}</button>`+
+    `<button class="ghost" id="openBtn">${esc(T('open'))}</button>`+
+    `<button class="ghost" id="pageBtn">${esc(T('see'))}</button></div>`+
+    `<div style="font-size:12px;color:rgba(239,227,204,.82);margin-top:11px">${esc(T('by'))} ${esc(who)}</div>`;
+  paintCite();
+  d.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+    state.tab=b.dataset.k;
+    d.querySelectorAll('.tab').forEach(x=>x.setAttribute('aria-selected',String(x.dataset.k===state.tab)));
+    paintCite();
+  });
+  $('#copyBtn').onclick=async()=>{
+    const b=$('#copyBtn');
+    try{ await navigator.clipboard.writeText(citation()); b.textContent=T('copied'); }catch(e){}
+    setTimeout(()=>b.textContent=T('copy'),1600);
+  };
+  $('#openBtn').onclick=()=>setMode('ayah');
+  $('#pageBtn').onclick=()=>setMode('mushaf');
+}
+function paintCite(){
+  const out=$('#citeOut'); if(!out) return;
+  const t=citation();
+  if(state.tab==='block'){ const [a0,...r]=t.split('\n'); out.innerHTML=`<span class="ai">${esc(a0)}</span>`+esc(r.join('\n')); }
+  else out.textContent=t;
+}
+
+/* ══ recitation ═════════════════════════════════════════ */
+const DEF_BR={'ar.sudais':192,'ar.abdulbasit':192,'ar.abdulbasitmujawwad':192,'ar.minshawimujawwad':64,'ar.parhizgar':64};
+const ALL_BR=[128,64,192,48,32];
+const chainFor=id=>{const f=DEF_BR[id]||128; return [f,...ALL_BR.filter(b=>b!==f)];};
+const RFALL=[{identifier:'ar.alafasy',englishName:'Mishary Rashid Alafasy'},
+  {identifier:'ar.husary',englishName:'Mahmoud Khalil Al-Husary'},
+  {identifier:'ar.minshawi',englishName:'Mohamed Siddiq al-Minshawi'},
+  {identifier:'ar.abdulbasitmujawwad',englishName:'Abdul Basit (Mujawwad)'}];
+const audio=new Audio(); audio.preload='auto';
+let chain=[],brTry=0,qi=-1,playing=false;
+function glyph(on){
+  $('#listen').innerHTML='<svg viewBox="0 0 24 24"><path d="'+
+    (on?'M7.5 5h3.2v14H7.5zM13.3 5h3.2v14h-3.2z':'M8 5.5v13l11-6.5z')+'"/></svg>';
+}
+function hl(no){
+  document.querySelectorAll('.v').forEach(e=>e.classList.toggle('reciting',+e.dataset.no===no));
+  document.querySelectorAll('.prow').forEach(e=>e.classList.toggle('reciting',+e.dataset.no===no));
+}
+function playAt(i){
+  if(i<0||i>=spread.length){ stopRec(); return; }
+  qi=i; const a=spread[i]; chain=chainFor(state.reciter); brTry=0;
+  audio.src=`${CDN}/${chain[0]}/${state.reciter}/${a.number}.mp3`;
+  hl(a.number);
+  audio.play().catch(err=>{ if(err&&err.name==='NotAllowedError') setStatus('warn',T('fail')); });
+}
+function stopRec(){ playing=false; audio.pause(); hl(-1); glyph(false); }
+audio.onplay=()=>{playing=true;glyph(true);};
+audio.onpause=()=>{ if(!audio.ended) glyph(false); };
+audio.onended=()=>{
+  if(qi+1<spread.length){ playAt(qi+1); return; }
+  if(state.mode==='mushaf'){ const R=spreadStart(); markRead(R); if(pageStep()===2) markRead(R+1); }
+  else if(state.mode==='parallel') markRead(state.page);
+  if(!state.continuous){ stopRec(); return; }
+  if(state.mode==='ayah'){ if(state.sel<AYAHS){ state.sel++; render().then(()=>playAt(0)); } else stopRec(); return; }
+  const step=pageStep(), R=spreadStart();
+  if(R+step<=PAGES){ state.page=R+step; render().then(()=>playAt(0)); } else stopRec();
+};
+audio.onerror=()=>{
+  brTry++;
+  if(brTry>=chain.length||!spread[qi]){ stopRec(); return; }
+  audio.src=`${CDN}/${chain[brTry]}/${state.reciter}/${spread[qi].number}.mp3`;
+  audio.play().catch(()=>{});
+};
+$('#listen').onclick=()=>playing?stopRec():playAt(qi>=0&&qi<spread.length?qi:0);
+
+/* ══ navigation ═════════════════════════════════════════ */
+const narrow=()=>matchMedia('(max-width:1000px)').matches;
+const pageStep=()=> (state.mode==='mushaf' && !narrow()) ? 2 : 1;
+const spreadStart=()=> (state.mode==='mushaf' && !narrow())
+  ? (state.page%2===1?state.page:state.page-1) : state.page;
+let dwellTimer=null, dwellMs=0, dwellPages=[];
+function stopDwell(){ if(dwellTimer){clearInterval(dwellTimer);dwellTimer=null;} dwellMs=0; dwellPages=[]; }
+function startDwell(pages,needMs){
+  stopDwell(); dwellPages=pages.filter(p=>p>=1&&p<=PAGES);
+  if(!dwellPages.length) return;
+  dwellTimer=setInterval(()=>{
+    if(document.hidden) return;               // a backgrounded tab is not reading
+    dwellMs+=1000;
+    if(dwellMs>=needMs){ const ps=dwellPages.slice(); stopDwell(); ps.forEach(markRead); }
+  },1000);
+}
+function syncHash(){
+  location.hash = state.mode==='ayah'&&state.sel
+    ? (()=>{const{s,a}=refOf(state.sel);return `${s.number}:${a}`;})() : 'p'+state.page;
+}
+async function goPage(p){ state.page=Math.min(PAGES,Math.max(1,p)); if(state.mode==='ayah') state.mode='mushaf'; paintDensity(); syncHash(); await render(); }
+async function gotoRef(s,a){ const d=await ayahData(s,a).catch(()=>null); if(!d) return; state.sel=d.ar.number; state.page=d.ar.page; syncHash(); await render(); study(); }
+function setMode(m){ state.mode=m; paintDensity(); syncHash(); render().then(study); }
+function paintDensity(){ [...$('#density').children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.m===state.mode))); }
+
+$('#prev').onclick=()=>{ if(state.mode==='ayah'){ if(state.sel>1){state.sel--;syncHash();render().then(study);} } else goPage(state.page-pageStep()); };
+$('#next').onclick=()=>{ if(state.mode==='ayah'){ if(state.sel<AYAHS){state.sel++;syncHash();render().then(study);} } else goPage(state.page+pageStep()); };
+$('#pageIn').onchange=()=>goPage(+$('#pageIn').value||1);
+$('#refIn').onchange=()=>{ const m=/^(\d{1,3})\s*[:\.]\s*(\d{1,3})$/.exec($('#refIn').value.trim()); if(m){ state.mode='ayah'; paintDensity(); gotoRef(+m[1],+m[2]); } };
+$('#markBtn').onclick=()=>{ const R=spreadStart(); markRead(R); if(pageStep()===2) markRead(R+1); };
+$('#resetBtn').onclick=()=>{ if(confirm(T('resetAsk'))){ read=new Set(); saveRead(read); paintClock(); } };
+$('#cont').onchange=e=>state.continuous=e.target.checked;
+addEventListener('keydown',e=>{
+  if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+  if(e.key==='ArrowRight'){ e.preventDefault(); $('#prev').click(); }
+  if(e.key==='ArrowLeft'){ e.preventDefault(); $('#next').click(); }
+  if(e.code==='Space'){ e.preventDefault(); $('#listen').click(); }
+});
+
+/* ══ translations for the chosen language ═══════════════ */
+function rebuildTranslations(){
+  const code=L().api||state.lang;
+  let list=allEds.filter(e=>e.language===code&&e.type==='translation');
+  if(!list.length) list=allEds.filter(e=>e.language==='en'&&e.type==='translation');
+  if(!list.length) list=[{identifier:'en.sahih',englishName:'Saheeh International',language:'en'}];
+  translations=list.sort((a,b)=>a.englishName.localeCompare(b.englishName));
+  if(!translations.some(t=>t.identifier===state.trEd)) state.trEd=translations[0].identifier;
+  const ts=$('#transSel'); ts.innerHTML='';
+  translations.forEach(t=>ts.appendChild(Object.assign(document.createElement('option'),
+    {value:t.identifier,textContent:t.englishName})));
+  ts.value=state.trEd;
+}
+
+async function setLang(code){
+  if(!LANGS[code]) return;
+  state.lang=code; lsSet(LKEY,code);
+  applyLang(); rebuildTranslations();
+  for(const k in juzCache) delete juzCache[k];
+  for(const k in ayahCache) delete ayahCache[k];
+  sizeClock();
+  await render(); study();
+}
+
+/* ══ boot ═══════════════════════════════════════════════ */
+async function boot(){
+  applyLang();
+  const ls=$('#langSel');
+  Object.entries(LANGS).forEach(([c,l])=>ls.appendChild(Object.assign(document.createElement('option'),
+    {value:c,textContent:l.name})));
+  ls.value=state.lang;
+  ls.onchange=()=>setLang(ls.value);
+
+  setStatus('',T('loading'));
+  try{ surahs=await getJSON(API+'/surah'); }
+  catch(e){ setStatus('warn',T('fail'),boot); return; }
+  let run=0; cumAyah=surahs.map(s=>run+=s.numberOfAyahs);
+
+  const ss=$('#surahSel');
+  surahs.forEach(s=>ss.appendChild(Object.assign(document.createElement('option'),
+    {value:s.number,textContent:`${s.number} · ${s.englishName} — ${s.englishNameTranslation}`})));
+  ss.onchange=()=>gotoRef(+ss.value,1);
+
+  try{
+    allEds=await getJSON(API+'/edition/format/text');
+    const ar=allEds.filter(e=>e.language==='ar'&&e.type==='quran');
+    if(ar.length) state.arEd=(ar.find(e=>/uthmani/i.test(e.identifier))||ar[0]).identifier;
+  }catch(e){ allEds=[]; }
+  rebuildTranslations();
+  $('#transSel').onchange=()=>{
+    state.trEd=$('#transSel').value;
+    for(const k in juzCache) delete juzCache[k]; for(const k in ayahCache) delete ayahCache[k];
+    render().then(study);
+  };
+
+  try{
+    const au=await getJSON(API+'/edition/format/audio');
+    let l=au.filter(e=>e.language==='ar'); const v=l.filter(e=>e.type==='versebyverse'); if(v.length)l=v;
+    reciters=l.sort((a,b)=>a.englishName.localeCompare(b.englishName));
+  }catch(e){ reciters=[]; }
+  if(!reciters.length) reciters=RFALL;
+  if(!reciters.some(r=>r.identifier===state.reciter)) state.reciter=reciters[0].identifier;
+  const rs=$('#reciterSel');
+  reciters.forEach(r=>rs.appendChild(Object.assign(document.createElement('option'),
+    {value:r.identifier,textContent:r.englishName})));
+  rs.value=state.reciter;
+  rs.onchange=()=>{ state.reciter=rs.value; if(playing) playAt(qi); };
+
+  sizeClock();
+  const h=location.hash;
+  const mp=/^#p(\d{1,3})$/.exec(h), mr=/^#(\d{1,3}):(\d{1,3})$/.exec(h);
+  if(mr){ state.mode='ayah'; paintDensity(); await gotoRef(+mr[1],+mr[2]); study(); }
+  else { state.page=mp?Math.min(PAGES,+mp[1]):1; await render(); study(); }
+}
+boot();
+})();
+</script>
+</html>
