@@ -10,7 +10,7 @@ If you read one of these languages, correcting a single awkward phrase is worth 
 
 ### How
 
-1. Open `index.html` and find the `LANGS` object near the top of the `<script>`.
+1. Open `public/index.html` and find the `LANGS` object near the top of the `<script>`.
 2. Find your language code. Every locale has the same 40 keys.
 3. Fix what reads wrong. Keep the meaning; make it sound like your language, not like translated English.
 4. If you are confident the whole locale is now correct, change `rev:false` to `rev:true` — that removes the draft notice.
@@ -37,13 +37,13 @@ If a published translation is missing for your language, the fix belongs upstrea
 
 ## Code
 
-One file, no build step, no dependencies. Open `index.html` in a browser and it runs.
+One file, no build step, no dependencies. Open `public/index.html` in a browser and it runs.
 
 Before opening a PR:
 
 ```bash
 # extract the script and syntax-check it
-sed -n '/^<script>$/,/^<\/script>$/p' index.html | sed '1d;$d' > /tmp/check.js
+sed -n '/^<script>$/,/^<\/script>$/p' public/index.html | sed '1d;$d' > /tmp/check.js
 node --check /tmp/check.js
 ```
 
