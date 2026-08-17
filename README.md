@@ -24,7 +24,7 @@ Three reading densities, one book. Your place carries across all three.
 
 ## Privacy
 
-There is no server. No account, no analytics, no cookies, no telemetry. Reading progress lives in `localStorage` and cannot leave the browser, because there is nowhere for it to go. The Content-Security-Policy in `_headers` enforces this — the page may talk to exactly four hosts, and nothing else.
+There is no server. No account, no analytics, no cookies, no telemetry. Reading progress lives in `localStorage` and cannot leave the browser, because there is nowhere for it to go. The Content-Security-Policy in `public/_headers` enforces this — the page may talk to exactly four hosts, and nothing else.
 
 ## Honest limits
 
