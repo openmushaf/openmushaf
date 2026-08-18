@@ -190,11 +190,13 @@
 
   footer{margin-top:32px;padding-top:16px;border-top:1px solid rgba(239,227,204,.08);font-size:13.5px;line-height:1.75;color:rgba(239,227,204,.82)}
   footer a{color:rgba(239,227,204,.88)}
-  .support{margin-top:16px;padding-top:14px;border-top:1px solid rgba(239,227,204,.12);
-           font-size:12.5px;line-height:1.7;color:rgba(239,227,204,.88)}
-  .support a{color:var(--saffron);border-bottom:1px solid rgba(229,163,58,.45);
-             white-space:nowrap;padding-bottom:1px;margin-inline-start:.35em}
-  .support a:hover{border-bottom-color:var(--saffron);background:rgba(229,163,58,.08)} footer b{color:rgba(239,227,204,.88);font-weight:500}
+  .support{margin-top:18px;padding-top:16px;border-top:1px solid rgba(239,227,204,.16);
+           font-size:14px;line-height:1.8;color:var(--pearl);
+           display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px}
+  .support a{color:var(--saffron);text-decoration:none;border:1px solid rgba(229,163,58,.5);
+             border-radius:3px;padding:8px 15px;white-space:nowrap;font-size:12.5px;
+             letter-spacing:.03em;transition:background .18s,border-color .18s}
+  .support a:hover{background:rgba(229,163,58,.12);border-color:var(--saffron)} footer b{color:rgba(239,227,204,.88);font-weight:500}
 
   @media (max-width:700px){
     .transport{gap:10px;padding:9px 12px;bottom:10px}
