@@ -51,7 +51,6 @@
   .ar-title{font-family:var(--quran);font-size:clamp(1.15rem,2.6vw,1.5rem);color:var(--saffron);opacity:.85;line-height:1}
   .loc{font-family:var(--display);font-style:italic;font-size:15px;color:rgba(239,227,204,.7);
        padding-inline-start:.7em;border-inline-start:1px solid rgba(229,163,58,.35)}
-  .tagline{margin-inline-start:auto;font-size:13.5px;color:rgba(239,227,204,.82)}
   .rule{height:1px;background:linear-gradient(90deg,transparent,rgba(229,163,58,.3) 8%,rgba(229,163,58,.3) 92%,transparent);margin:0 0 18px}
 
   .density{display:flex;border:1px solid rgba(239,227,204,.13);border-radius:3px;overflow:hidden;width:max-content;margin-bottom:18px;max-width:100%}
@@ -237,7 +236,6 @@
   <header>
     <h1 id="brand">Open Muṣḥaf</h1><span class="ar-title" id="arTitle">مصحف</span>
     <span class="loc" id="loc"></span>
-    <span class="tagline" id="tagline"></span>
   </header>
   <div class="rule"></div>
 
@@ -334,7 +332,6 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
    `api` overrides the API's language code when it differs from ours.        */
 const LANGS={
  en:{name:'English',dir:'ltr',digits:null,font:null,rev:true,s:{brand:'Open Muṣḥaf',
-  tag:'no account · no tracking · nothing leaves this device',
   m1:'Muṣḥaf',m1s:'read · memorise',m2:'Parallel',m2s:'learn',m3:'Āyah',m3s:'study · cite',
   lang:'Language',goto:'Go to',surah:'Sūrah',page:'Page',ref:'Reference',trans:'Translation',
   recit:'Recitation',carry:'Carry on to the next page',mark:'Mark read',reset:'Reset khatma',
@@ -348,7 +345,6 @@ const LANGS={
   sup:'Help keep Islamic knowledge accessible. Free, no ads, no account. %s costs $37 a year to run — the code is open.',supCta:'Support development'}},
 
  ar:{name:'العربية',dir:'rtl',digits:'٠١٢٣٤٥٦٧٨٩',font:'Noto+Naskh+Arabic:wght@400;600',rev:false,s:{brand:'المصحف المفتوح',
-  tag:'بلا حساب · بلا تتبّع · لا شيء يغادر جهازك',
   m1:'مصحف',m1s:'قراءة وحفظ',m2:'مقابل',m2s:'تعلّم',m3:'آية',m3s:'دراسة واقتباس',
   lang:'اللغة',goto:'انتقل إلى',surah:'سورة',page:'صفحة',ref:'مرجع',trans:'ترجمة',
   recit:'تلاوة',carry:'تابع إلى الصفحة التالية',mark:'علّم كمقروء',reset:'إعادة الختمة',
@@ -362,7 +358,6 @@ const LANGS={
   sup:'ساهم في إبقاء المعرفة الإسلامية في متناول الجميع. مجاني، بلا إعلانات، بلا حساب. %s يكلّف ٣٧ دولاراً في السنة — والشيفرة مفتوحة.',supCta:'ادعم التطوير'}},
 
  id:{name:'Bahasa Indonesia',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Mushaf',
-  tag:'tanpa akun · tanpa pelacakan · tidak ada yang keluar dari perangkat ini',
   m1:'Mushaf',m1s:'baca · hafal',m2:'Terjemah',m2s:'belajar',m3:'Ayat',m3s:'telaah · kutip',
   lang:'Bahasa',goto:'Buka',surah:'Surah',page:'Halaman',ref:'Rujukan',trans:'Terjemahan',
   recit:'Bacaan',carry:'Lanjut ke halaman berikutnya',mark:'Tandai dibaca',reset:'Atur ulang khatam',
@@ -376,7 +371,6 @@ const LANGS={
   sup:'Bantu jaga ilmu Islam tetap terjangkau. Gratis, tanpa iklan, tanpa akun. %s menghabiskan $37 per tahun — kodenya terbuka.',supCta:'Dukung pengembangan'}},
 
  bn:{name:'বাংলা',dir:'ltr',digits:'০১২৩৪৫৬৭৮৯',font:'Noto+Serif+Bengali:wght@400;600&family=Noto+Sans+Bengali:wght@400;600',rev:false,s:{brand:'ওপেন মুসহাফ',
-  tag:'কোনো অ্যাকাউন্ট নয় · কোনো ট্র্যাকিং নয় · কিছুই এই ডিভাইস ছাড়ে না',
   m1:'মুসহাফ',m1s:'পড়ুন · মুখস্থ করুন',m2:'অনুবাদসহ',m2s:'শিখুন',m3:'আয়াত',m3s:'অধ্যয়ন · উদ্ধৃতি',
   lang:'ভাষা',goto:'যান',surah:'সূরা',page:'পৃষ্ঠা',ref:'রেফারেন্স',trans:'অনুবাদ',
   recit:'তিলাওয়াত',carry:'পরের পৃষ্ঠায় চলুন',mark:'পঠিত চিহ্নিত করুন',reset:'খতম রিসেট',
@@ -390,7 +384,6 @@ const LANGS={
   sup:'ইসলামি জ্ঞান সবার নাগালে রাখতে সাহায্য করুন। বিনামূল্যে, বিজ্ঞাপন নেই, অ্যাকাউন্ট নেই। %s চালাতে বছরে $37 লাগে — কোড উন্মুক্ত।',supCta:'উন্নয়নে সহায়তা করুন'}},
 
  ur:{name:'اردو',dir:'rtl',digits:'۰۱۲۳۴۵۶۷۸۹',font:'Noto+Nastaliq+Urdu:wght@400;600',rev:false,s:{brand:'المصحف المفتوح',
-  tag:'کوئی اکاؤنٹ نہیں · کوئی ٹریکنگ نہیں · کچھ بھی اس ڈیوائس سے باہر نہیں جاتا',
   m1:'مصحف',m1s:'پڑھیں اور حفظ کریں',m2:'ترجمے کے ساتھ',m2s:'سیکھیں',m3:'آیت',m3s:'مطالعہ اور حوالہ',
   lang:'زبان',goto:'جائیں',surah:'سورہ',page:'صفحہ',ref:'حوالہ',trans:'ترجمہ',
   recit:'تلاوت',carry:'اگلے صفحے پر جاری رکھیں',mark:'پڑھا ہوا',reset:'ختم دوبارہ شروع',
@@ -404,7 +397,6 @@ const LANGS={
   sup:'اسلامی علم کو سب کی رسائی میں رکھنے میں مدد کریں۔ مفت، کوئی اشتہار نہیں، کوئی اکاؤنٹ نہیں۔ %s پر سالانہ ۳۷ ڈالر لاگت آتی ہے — کوڈ کھلا ہے۔',supCta:'ترقی میں تعاون کریں'}},
 
  hi:{name:'हिन्दी',dir:'ltr',digits:null,font:'Noto+Sans+Devanagari:wght@400;600&family=Noto+Serif+Devanagari:wght@400;600',rev:false,s:{brand:'ओपन मुसहफ़',
-  tag:'कोई खाता नहीं · कोई ट्रैकिंग नहीं · कुछ भी इस डिवाइस से बाहर नहीं जाता',
   m1:'मुसहफ़',m1s:'पढ़ें · याद करें',m2:'अनुवाद सहित',m2s:'सीखें',m3:'आयत',m3s:'अध्ययन · संदर्भ',
   lang:'भाषा',goto:'जाएँ',surah:'सूरा',page:'पृष्ठ',ref:'संदर्भ',trans:'अनुवाद',
   recit:'तिलावत',carry:'अगले पृष्ठ पर जारी रखें',mark:'पढ़ा हुआ चिह्नित करें',reset:'ख़त्म रीसेट करें',
@@ -418,7 +410,6 @@ const LANGS={
   sup:'इस्लामी ज्ञान को सबकी पहुँच में रखने में मदद करें। मुफ़्त, कोई विज्ञापन नहीं, कोई खाता नहीं। %s को चलाने में सालाना $37 लगते हैं — कोड खुला है।',supCta:'विकास में सहयोग करें'}},
 
  tr:{name:'Türkçe',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Mushaf',
-  tag:'hesap yok · takip yok · hiçbir şey bu cihazdan çıkmaz',
   m1:'Mushaf',m1s:'oku · ezberle',m2:'Mealli',m2s:'öğren',m3:'Âyet',m3s:'incele · alıntıla',
   lang:'Dil',goto:'Git',surah:'Sûre',page:'Sayfa',ref:'Referans',trans:'Meal',
   recit:'Tilâvet',carry:'Sonraki sayfaya devam et',mark:'Okundu işaretle',reset:'Hatmi sıfırla',
@@ -432,7 +423,6 @@ const LANGS={
   sup:'İslami ilmin herkese açık kalmasına yardım edin. Ücretsiz, reklamsız, hesapsız. %s yılda 37 dolara mal oluyor — kod açık.',supCta:'Geliştirmeyi destekle'}},
 
  fa:{name:'فارسی',dir:'rtl',digits:'۰۱۲۳۴۵۶۷۸۹',font:'Noto+Naskh+Arabic:wght@400;600',rev:false,s:{brand:'المصحف المفتوح',
-  tag:'بدون حساب · بدون ردیابی · هیچ چیز از این دستگاه خارج نمی‌شود',
   m1:'مصحف',m1s:'خواندن و حفظ',m2:'ترجمه',m2s:'یادگیری',m3:'آیه',m3s:'مطالعه و ارجاع',
   lang:'زبان',goto:'برو به',surah:'سوره',page:'صفحه',ref:'ارجاع',trans:'ترجمه',
   recit:'تلاوت',carry:'به صفحهٔ بعد ادامه بده',mark:'خوانده شد',reset:'بازنشانی ختم',
@@ -446,7 +436,6 @@ const LANGS={
   sup:'کمک کنید دانش اسلامی در دسترس همه بماند. رایگان، بدون تبلیغات، بدون حساب. %s سالانه ۳۷ دلار هزینه دارد — کد باز است.',supCta:'از توسعه حمایت کنید'}},
 
  ps:{name:'پښتو',dir:'rtl',digits:'۰۱۲۳۴۵۶۷۸۹',font:'Noto+Naskh+Arabic:wght@400;600',rev:false,s:{brand:'المصحف المفتوح',
-  tag:'حساب نشته · څارنه نشته · هیڅ شی له دې وسیلې نه وځي',
   m1:'مصحف',m1s:'لوستل · حفظول',m2:'له ژباړې سره',m2s:'زده کړه',m3:'آيت',m3s:'مطالعه · حواله',
   lang:'ژبه',goto:'ورتګ',surah:'سوره',page:'مخ',ref:'حواله',trans:'ژباړه',
   recit:'تلاوت',carry:'راتلونکي مخ ته دوام ورکړه',mark:'لوستل شوی ونښه',reset:'ختم بیا پیل',
@@ -460,7 +449,6 @@ const LANGS={
   sup:'مرسته وکړئ چې اسلامي پوهه د ټولو لپاره لاسرسي وړ پاتې شي. وړیا، بې اعلانه، بې حسابه. %s په کال کې ۳۷ ډالره لګښت لري — کوډ خلاص دی.',supCta:'د پرمختګ ملاتړ وکړئ'}},
 
  ckb:{name:'کوردی (سۆرانی)',api:'ku',dir:'rtl',digits:'٠١٢٣٤٥٦٧٨٩',font:'Noto+Naskh+Arabic:wght@400;600',rev:false,s:{brand:'المصحف المفتوح',
-  tag:'هیچ هەژمارێک نییە · هیچ چاودێریەک نییە · هیچ شتێک ئەم ئامێرە بەجێناهێڵێت',
   m1:'موسحەف',m1s:'خوێندنەوە · لەبەرکردن',m2:'لەگەڵ وەرگێڕان',m2s:'فێربوون',m3:'ئایە',m3s:'لێکۆڵینەوە · ئاماژە',
   lang:'زمان',goto:'بڕۆ بۆ',surah:'سوورە',page:'لاپەڕە',ref:'ئاماژە',trans:'وەرگێڕان',
   recit:'خوێندنەوە',carry:'بەردەوامبە بۆ لاپەڕەی داهاتوو',mark:'وەک خوێندراوە نیشانە بکە',reset:'خەتمە لە سەرەتاوە',
@@ -474,7 +462,6 @@ const LANGS={
   sup:'یارمەتی بدە زانستی ئیسلامی بۆ هەمووان بەردەست بمێنێت. بێبەرامبەر، بێ ڕیکلام، بێ هەژمار. %s ساڵانە ٣٧ دۆلار تێچووی هەیە — کۆدەکە کراوەیە.',supCta:'پشتیوانی لە گەشەپێدان بکە'}},
 
  ru:{name:'Русский',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Открытый Мусхаф',
-  tag:'без аккаунта · без слежки · ничто не покидает это устройство',
   m1:'Мусхаф',m1s:'чтение · заучивание',m2:'С переводом',m2s:'изучение',m3:'Аят',m3s:'разбор · цитата',
   lang:'Язык',goto:'Перейти',surah:'Сура',page:'Страница',ref:'Ссылка',trans:'Перевод',
   recit:'Чтение',carry:'Продолжать на следующей странице',mark:'Отметить прочитанным',reset:'Сбросить хатм',
@@ -488,7 +475,6 @@ const LANGS={
   sup:'Помогите сохранить исламское знание доступным. Бесплатно, без рекламы, без аккаунта. %s стоит $37 в год — код открыт.',supCta:'Поддержать разработку'}},
 
  ha:{name:'Hausa',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Mushafi',
-  tag:"babu asusu · babu bin diddigi · babu abin da ke fita daga wannan na'urar",
   m1:"Mus'hafi",m1s:'karatu · haddace',m2:'Da fassara',m2s:'koyo',m3:'Aya',m3s:'nazari · ambato',
   lang:'Harshe',goto:'Je zuwa',surah:'Sura',page:'Shafi',ref:'Nassi',trans:'Fassara',
   recit:'Karatu',carry:'Ci gaba zuwa shafi na gaba',mark:'Alama an karanta',reset:'Sake fara khatma',
@@ -502,7 +488,6 @@ const LANGS={
   sup:'Taimaka a ci gaba da samun ilimin Musulunci ga kowa. Kyauta, babu talla, babu asusu. %s yana kashe $37 a shekara — lambar a buɗe take.',supCta:'Tallafa wa ci gaba'}},
 
  sw:{name:'Kiswahili',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Msahafu',
-  tag:'hakuna akaunti · hakuna ufuatiliaji · hakuna kinachotoka kwenye kifaa hiki',
   m1:'Msahafu',m1s:'soma · hifadhi',m2:'Na tafsiri',m2s:'jifunze',m3:'Aya',m3s:'chunguza · nukuu',
   lang:'Lugha',goto:'Nenda',surah:'Sura',page:'Ukurasa',ref:'Rejea',trans:'Tafsiri',
   recit:'Kisomo',carry:'Endelea ukurasa unaofuata',mark:'Weka alama imesomwa',reset:'Anzisha upya khatma',
@@ -516,7 +501,6 @@ const LANGS={
   sup:'Saidia elimu ya Kiislamu ibaki inapatikana kwa wote. Bure, hakuna matangazo, hakuna akaunti. %s hugharimu $37 kwa mwaka — msimbo ni wazi.',supCta:'Saidia maendeleo'}},
 
  so:{name:'Soomaali',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Mus-haf',
-  tag:'koonto ma jirto · raad-raac ma jiro · waxba kama baxaan qalabkan',
   m1:'Mus-haf',m1s:'akhri · xafid',m2:'Turjumaad la jira',m2s:'baro',m3:'Aayad',m3s:'darso · soo xigo',
   lang:'Luqad',goto:'Tag',surah:'Suurad',page:'Bog',ref:'Tixraac',trans:'Turjumaad',
   recit:'Akhris',carry:'Sii wad bogga xiga',mark:'Calaamadi in la akhriyay',reset:'Dib u bilow khatmada',
@@ -530,7 +514,6 @@ const LANGS={
   sup:'Kaalmee in cilmiga Islaamka uu qof walba heli karo. Bilaash, xayaysiin ma leh, koonto ma leh. %s waxay ku kacaysaa $37 sanadkii — koodhku waa furan yahay.',supCta:'Taageer horumarinta'}},
 
  uz:{name:'Oʻzbekcha',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Mushaf',
-  tag:'hisob yoʻq · kuzatuv yoʻq · hech narsa bu qurilmadan chiqmaydi',
   m1:'Mushaf',m1s:'oʻqish · yodlash',m2:'Tarjima bilan',m2s:'oʻrganish',m3:'Oyat',m3s:'tahlil · iqtibos',
   lang:'Til',goto:'Oʻtish',surah:'Sura',page:'Sahifa',ref:'Havola',trans:'Tarjima',
   recit:'Qiroat',carry:'Keyingi sahifaga davom etish',mark:'Oʻqilgan deb belgilash',reset:'Xatmni tiklash',
@@ -544,7 +527,6 @@ const LANGS={
   sup:'Islom ilmi hamma uchun ochiq qolishiga yordam bering. Bepul, reklamasiz, hisobsiz. %s yiliga $37 turadi — kod ochiq.',supCta:'Rivojlanishni qoʻllab-quvvatlash'}},
 
  az:{name:'Azərbaycanca',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Müshəf',
-  tag:'hesab yoxdur · izləmə yoxdur · heç nə bu cihazdan çıxmır',
   m1:'Müshəf',m1s:'oxu · əzbərlə',m2:'Tərcümə ilə',m2s:'öyrən',m3:'Ayə',m3s:'araşdır · sitat',
   lang:'Dil',goto:'Keç',surah:'Surə',page:'Səhifə',ref:'İstinad',trans:'Tərcümə',
   recit:'Tilavət',carry:'Növbəti səhifəyə davam et',mark:'Oxundu işarələ',reset:'Xətmi sıfırla',
@@ -558,7 +540,6 @@ const LANGS={
   sup:'İslam elminin hamı üçün əlçatan qalmasına kömək edin. Pulsuz, reklamsız, hesabsız. %s ildə $37-a başa gəlir — kod açıqdır.',supCta:'İnkişafı dəstəklə'}},
 
  ml:{name:'മലയാളം',dir:'ltr',digits:null,font:'Noto+Sans+Malayalam:wght@400;600&family=Noto+Serif+Malayalam:wght@400;600',rev:false,s:{brand:'ഓപ്പൺ മുസ്ഹഫ്',
-  tag:'അക്കൗണ്ട് വേണ്ട · ട്രാക്കിംഗ് ഇല്ല · ഒന്നും ഈ ഉപകരണം വിടുന്നില്ല',
   m1:'മുസ്ഹഫ്',m1s:'വായിക്കുക · മനഃപാഠമാക്കുക',m2:'പരിഭാഷയോടെ',m2s:'പഠിക്കുക',m3:'ആയത്ത്',m3s:'പഠനം · ഉദ്ധരണി',
   lang:'ഭാഷ',goto:'പോകുക',surah:'സൂറ',page:'പേജ്',ref:'റഫറൻസ്',trans:'പരിഭാഷ',
   recit:'പാരായണം',carry:'അടുത്ത പേജിലേക്ക് തുടരുക',mark:'വായിച്ചതായി അടയാളപ്പെടുത്തുക',reset:'ഖത്മ് പുനഃസജ്ജമാക്കുക',
@@ -572,7 +553,6 @@ const LANGS={
   sup:'ഇസ്ലാമിക വിജ്ഞാനം എല്ലാവർക്കും ലഭ്യമായിരിക്കാൻ സഹായിക്കുക. സൗജന്യം, പരസ്യമില്ല, അക്കൗണ്ടില്ല. %s പ്രവർത്തിപ്പിക്കാൻ വർഷം $37 ചെലവാകും — കോഡ് തുറന്നതാണ്.',supCta:'വികസനത്തെ പിന്തുണയ്ക്കുക'}},
 
  ta:{name:'தமிழ்',dir:'ltr',digits:null,font:'Noto+Sans+Tamil:wght@400;600&family=Noto+Serif+Tamil:wght@400;600',rev:false,s:{brand:'ஓப்பன் முஸ்ஹஃப்',
-  tag:'கணக்கு இல்லை · கண்காணிப்பு இல்லை · எதுவும் இந்தச் சாதனத்தை விட்டு வெளியேறாது',
   m1:'முஸ்ஹஃப்',m1s:'படி · மனனம் செய்',m2:'மொழிபெயர்ப்புடன்',m2s:'கற்றுக்கொள்',m3:'வசனம்',m3s:'ஆய்வு · மேற்கோள்',
   lang:'மொழி',goto:'செல்',surah:'சூரா',page:'பக்கம்',ref:'குறிப்பு',trans:'மொழிபெயர்ப்பு',
   recit:'ஓதுதல்',carry:'அடுத்த பக்கத்திற்குத் தொடரவும்',mark:'படித்ததாகக் குறி',reset:'கத்மை மீட்டமை',
@@ -586,7 +566,6 @@ const LANGS={
   sup:'இஸ்லாமிய அறிவு அனைவருக்கும் கிடைக்க உதவுங்கள். இலவசம், விளம்பரம் இல்லை, கணக்கு இல்லை. %s ஆண்டுக்கு $37 செலவாகிறது — நிரல் திறந்தது.',supCta:'மேம்பாட்டை ஆதரிக்கவும்'}},
 
  om:{name:'Oromoo',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Mus-hafa',
-  tag:'herrega hin barbaachisu · hordoffiin hin jiru · wanti tokko meeshaa kana hin gadhiisu',
   m1:'Mus-hafa',m1s:'dubbisi · qalbeeffadhu',m2:'Hiikkaa waliin',m2s:'baradhu',m3:'Aayata',m3s:'qorannoo · eeruu',
   lang:'Afaan',goto:'Deemi',surah:'Suuraa',page:'Fuula',ref:'Eeruu',trans:'Hiikkaa',
   recit:'Qaraatii',carry:'Fuula itti aanutti itti fufi',mark:'Dubbifame jedhii mallatteessi',reset:'Khatmaa haaromsi',
@@ -600,7 +579,6 @@ const LANGS={
   sup:'Beekumsi Islaamaa namoota hundaaf akka argamu gargaari. Bilisa, beeksisa hin qabu, herrega hin qabu. %s waggaatti $37 baasii qaba — koodichi banaa dha.',supCta:'Guddina deeggari'}},
 
  am:{name:'አማርኛ',dir:'ltr',digits:null,font:'Noto+Sans+Ethiopic:wght@400;600&family=Noto+Serif+Ethiopic:wght@400;600',rev:false,s:{brand:'ኦፐን ሙስሐፍ',
-  tag:'መለያ የለም · ክትትል የለም · ምንም ከዚህ መሣሪያ አይወጣም',
   m1:'ሙስሐፍ',m1s:'አንብብ · በቃል ያዝ',m2:'ከትርጉም ጋር',m2s:'ተማር',m3:'አንቀጽ',m3s:'ጥናት · ጥቅስ',
   lang:'ቋንቋ',goto:'ሂድ ወደ',surah:'ሱራ',page:'ገጽ',ref:'ማጣቀሻ',trans:'ትርጉም',
   recit:'ንባብ',carry:'ወደ ቀጣዩ ገጽ ቀጥል',mark:'እንደተነበበ ምልክት አድርግ',reset:'ኸትማን እንደገና ጀምር',
@@ -614,7 +592,6 @@ const LANGS={
   sup:'እስላማዊ እውቀት ለሁሉም ተደራሽ ሆኖ እንዲቆይ እርዱ። ነጻ፣ ማስታወቂያ የለም፣ መለያ የለም። %s በዓመት $37 ያስወጣል — ኮዱ ክፍት ነው።',supCta:'ልማትን ደግፍ'}},
 
  fr:{name:'Français',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Muṣḥaf',
-  tag:'pas de compte · pas de suivi · rien ne quitte cet appareil',
   m1:'Muṣḥaf',m1s:'lire · mémoriser',m2:'Parallèle',m2s:'apprendre',m3:'Verset',m3s:'étudier · citer',
   lang:'Langue',goto:'Aller à',surah:'Sourate',page:'Page',ref:'Référence',trans:'Traduction',
   recit:'Récitation',carry:'Continuer à la page suivante',mark:'Marquer comme lu',reset:'Réinitialiser la khatma',
@@ -628,7 +605,6 @@ const LANGS={
   sup:'Aidez à garder le savoir islamique accessible. Gratuit, sans publicité, sans compte. %s coûte 37 $ par an — le code est ouvert.',supCta:'Soutenir le développement'}},
 
  es:{name:'Español',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Mus-haf',
-  tag:'sin cuenta · sin rastreo · nada sale de este dispositivo',
   m1:'Mus-haf',m1s:'leer · memorizar',m2:'Con traducción',m2s:'aprender',m3:'Aleya',m3s:'estudiar · citar',
   lang:'Idioma',goto:'Ir a',surah:'Sura',page:'Página',ref:'Referencia',trans:'Traducción',
   recit:'Recitación',carry:'Continuar en la página siguiente',mark:'Marcar como leída',reset:'Reiniciar la jatma',
@@ -642,7 +618,6 @@ const LANGS={
   sup:'Ayude a mantener accesible el conocimiento islámico. Gratis, sin anuncios, sin cuenta. %s cuesta 37 $ al año — el código es abierto.',supCta:'Apoyar el desarrollo'}},
 
  de:{name:'Deutsch',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Mushaf',
-  tag:'kein Konto · kein Tracking · nichts verlässt dieses Gerät',
   m1:'Mushaf',m1s:'lesen · auswendig lernen',m2:'Mit Übersetzung',m2s:'lernen',m3:'Vers',m3s:'studieren · zitieren',
   lang:'Sprache',goto:'Gehe zu',surah:'Sure',page:'Seite',ref:'Referenz',trans:'Übersetzung',
   recit:'Rezitation',carry:'Auf der nächsten Seite fortfahren',mark:'Als gelesen markieren',reset:'Khatma zurücksetzen',
@@ -656,7 +631,6 @@ const LANGS={
   sup:'Helfen Sie mit, islamisches Wissen zugänglich zu halten. Kostenlos, ohne Werbung, ohne Konto. %s kostet 37 $ im Jahr — der Code ist offen.',supCta:'Entwicklung unterstützen'}},
 
  ms:{name:'Bahasa Melayu',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Mushaf',
-  tag:'tiada akaun · tiada penjejakan · tiada apa keluar dari peranti ini',
   m1:'Mushaf',m1s:'baca · hafaz',m2:'Terjemahan',m2s:'belajar',m3:'Ayat',m3s:'kaji · petik',
   lang:'Bahasa',goto:'Pergi ke',surah:'Surah',page:'Halaman',ref:'Rujukan',trans:'Terjemahan',
   recit:'Bacaan',carry:'Teruskan ke halaman seterusnya',mark:'Tanda telah dibaca',reset:'Set semula khatam',
@@ -670,7 +644,6 @@ const LANGS={
   sup:'Bantu pastikan ilmu Islam kekal boleh dicapai. Percuma, tiada iklan, tiada akaun. %s memerlukan $37 setahun — kodnya terbuka.',supCta:'Sokong pembangunan'}},
 
  sq:{name:'Shqip',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Mus’haf',
-  tag:'pa llogari · pa gjurmim · asgjë nuk largohet nga kjo pajisje',
   m1:'Mus’haf',m1s:'lexo · mëso përmendsh',m2:'Me përkthim',m2s:'mëso',m3:'Ajet',m3s:'studim · citim',
   lang:'Gjuha',goto:'Shko te',surah:'Sure',page:'Faqe',ref:'Referencë',trans:'Përkthim',
   recit:'Recitim',carry:'Vazhdo në faqen tjetër',mark:'Shëno si të lexuar',reset:'Rinis hatmen',
@@ -684,7 +657,6 @@ const LANGS={
   sup:'Ndihmoni që dija islame të mbetet e arritshme për të gjithë. Falas, pa reklama, pa llogari. %s kushton 37 $ në vit — kodi është i hapur.',supCta:'Mbështet zhvillimin'}},
 
  bs:{name:'Bosanski',dir:'ltr',digits:null,font:null,rev:false,s:{brand:'Open Mushaf',
-  tag:'bez računa · bez praćenja · ništa ne napušta ovaj uređaj',
   m1:'Mushaf',m1s:'čitaj · uči napamet',m2:'Sa prijevodom',m2s:'uči',m3:'Ajet',m3s:'proučavaj · citiraj',
   lang:'Jezik',goto:'Idi na',surah:'Sura',page:'Stranica',ref:'Referenca',trans:'Prijevod',
   recit:'Učenje',carry:'Nastavi na sljedeću stranicu',mark:'Označi kao pročitano',reset:'Poništi hatmu',
@@ -757,7 +729,6 @@ function applyLang(){
   $('#brand').textContent=T('brand');
   $('#arTitle').textContent='المصحف';
   $('#arTitle').style.display=(l.dir==='rtl')?'none':'';   // don't print المصحف twice
-  $('#tagline').textContent=T('tag');
   const dn=$('#draftNote');
   if(dn){ dn.textContent = l.rev ? '' : T('draft'); }
   $('#l_lang').textContent=T('lang');
