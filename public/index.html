@@ -895,6 +895,24 @@ const CORNER=`<svg viewBox="0 0 20 20"><g fill="none" stroke="rgba(229,163,58,.5
  <path d="M10 1.5 L14 7 L19 7.5 L15.5 10 L19 12.5 L14 13 L10 18.5 L6 13 L1 12.5 L4.5 10 L1 7.5 L6 7 Z"/></g></svg>`;
 
 let spread=[], trMap={};
+/* The source text prefixes the basmala into ayah 1 of every surah but 1 and 9,
+   and head() renders its own centred basmala — so it would appear twice.
+   Compare on a skeleton with harakat, tatweel and U+FEFF removed: the edition
+   spells the basmala three different ways (shadda order varies, 1:1 carries a
+   BOM), and a future edition will find a fourth. */
+const BMARK=/[ؐ-ًؚ-ٰٟۖ-ۭـ﻿\s]/;
+const bSkel=t=>{let o='';for(const c of t) if(!BMARK.test(c)) o+=c; return o;};
+const BASMALA=bSkel('بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ');
+function ayahText(a,sNo){
+  const t=(a&&a.text)||'';
+  if(!a||a.numberInSurah!==1||sNo===1||sNo===9) return t;
+  let i=0,acc='';
+  for(const c of t){ if(acc.length>=BASMALA.length) break; if(!BMARK.test(c)) acc+=c; i+=c.length; }
+  if(acc!==BASMALA) return t;
+  let r=t.slice(i);
+  while(r.length&&BMARK.test(r[0])) r=r.slice(1);
+  return r;
+}
 function head(s){
   let h=`<div class="cartouche"><span class="nm">${esc(s.name||'')}</span>`+
     `<span class="sub">${esc(s.englishName||'')} · ${s.numberOfAyahs||''} · ${esc(s.revelationType||'')}</span></div>`;
@@ -909,7 +927,7 @@ async function paintLeaf(n,folio,fl,fn,fr,leaf){
   for(const a of ayahs){
     const s=a.surah||surahOf(a.number);
     if(a.numberInSurah===1) html+=head(s);
-    html+=`<span class="v" data-no="${a.number}">${esc(a.text)}</span>${rosette(a.numberInSurah)} `;
+    html+=`<span class="v" data-no="${a.number}">${esc(ayahText(a,s.number))}</span>${rosette(a.numberInSurah)} `;
     last=s;
   }
   folio.innerHTML=html||'<div style="opacity:.3;text-align:center;font-size:14px">—</div>';
@@ -935,7 +953,7 @@ async function render(){
       setStatus('',T('loading'));
       const {ar,tr}=await ayahData(s.number,a);
       state.page=ar.page; state.sel=ar.number; trMap[ar.number]=tr.text; spread=[ar];
-      $('#soloAr').innerHTML=esc(ar.text)+rosette(ar.numberInSurah);
+      $('#soloAr').innerHTML=esc(ayahText(ar,s.number))+rosette(ar.numberInSurah);
       $('#soloTr').textContent=tr.text;
       const who=(translations.find(t=>t.identifier===state.trEd)||{}).englishName||state.trEd;
       const bits=[`<span class="hi">${esc(s.name||s.englishName)}</span>`,esc(s.englishName),
@@ -954,7 +972,7 @@ async function render(){
       for(const a of ayahs){
         const s=a.surah||surahOf(a.number);
         if(a.numberInSurah===1) html+=head(s);
-        html+=`<div class="prow" data-no="${a.number}"><div class="a">${esc(a.text)}${rosette(a.numberInSurah)}</div>`+
+        html+=`<div class="prow" data-no="${a.number}"><div class="a">${esc(ayahText(a,s.number))}${rosette(a.numberInSurah)}</div>`+
               `<div class="t">${esc(trs[a.number]||'—')}</div><div class="n">${s.number}:${a.numberInSurah}</div></div>`;
       }
       $('#par').innerHTML=html;
@@ -1002,7 +1020,8 @@ function citation(){
   if(!state.sel) return '';
   const {s,a}=refOf(state.sel), ref=`${s.number}:${a}`;
   const who=(translations.find(t=>t.identifier===state.trEd)||{}).englishName||state.trEd;
-  const ar=(spread.find(x=>x.number===state.sel)||{}).text||'';
+  const arObj=spread.find(x=>x.number===state.sel)||null;
+  const ar=arObj?ayahText(arObj,s.number):'';
   const tx=trMap[state.sel]||'';
   switch(state.tab){
     case 'short': return `Qur'an ${ref}`;
