@@ -715,6 +715,11 @@ async function getJSON(u){
   const r=await fetch(u); if(!r.ok) throw new Error('HTTP '+r.status);
   const j=await r.json(); if(j.code!==200) throw new Error(j.status||'bad response'); return j.data;
 }
+/* Bundled files under /data are plain JSON, not API envelopes — see
+   tools/build-quran-bundle.mjs. The Arabic text ships with the site so the
+   mushaf renders with the API unreachable. */
+const getLocal=async u=>{const r=await fetch(u);
+  if(!r.ok) throw new Error('HTTP '+r.status); return r.json();};
 
 /* ══ language application ═══════════════════════════════ */
 let fontLink=null;
@@ -775,9 +780,11 @@ function footHTML(){
 /* ══ data ═══════════════════════════════════════════════ */
 async function fetchJuz(j){
   if(juzCache[j]) return juzCache[j];
-  const [ar,tr]=await Promise.all([getJSON(`${API}/juz/${j}/${state.arEd}`),getJSON(`${API}/juz/${j}/${state.trEd}`)]);
+  const [ar,tr]=await Promise.all([
+    getLocal(`/data/${state.arEd}/juz-${String(j).padStart(2,'0')}.json`),
+    getJSON(`${API}/juz/${j}/${state.trEd}`).catch(()=>({ayahs:[]}))]);
   const byPage={},trByNo={}; let min=1e9,max=0;
-  (ar.ayahs||[]).forEach(a=>{(byPage[a.page]=byPage[a.page]||[]).push(a); if(a.page<min)min=a.page; if(a.page>max)max=a.page;});
+  (ar||[]).forEach(a=>{(byPage[a.page]=byPage[a.page]||[]).push(a); if(a.page<min)min=a.page; if(a.page>max)max=a.page;});
   (tr.ayahs||[]).forEach(a=>{trByNo[a.number]=a.text;});
   return juzCache[j]={byPage,trByNo,min,max};
 }
@@ -1184,7 +1191,7 @@ async function boot(){
   ls.onchange=()=>setLang(ls.value);
 
   setStatus('',T('loading'));
-  try{ surahs=await getJSON(API+'/surah'); }
+  try{ surahs=await getLocal('/data/surahs.json'); }
   catch(e){ setStatus('warn',T('fail'),boot); return; }
   let run=0; cumAyah=surahs.map(s=>run+=s.numberOfAyahs);
 
