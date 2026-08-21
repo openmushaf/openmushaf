@@ -229,6 +229,18 @@
     .spread.two .leaf.right{border-left:0}
     .spread.two .leaf{min-height:auto}
   }
+
+  /* Last rule in the sheet so it wins on source order. .01ms rather than 0:
+     a zero duration can suppress transitionend, which future code may rely on.
+     The canvas is not guarded — it repaints on state change, never on a timer,
+     and the khatma wheel is data rather than decoration. */
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{
+      animation-duration:.01ms!important;
+      animation-iteration-count:1!important;
+      transition-duration:.01ms!important;
+      scroll-behavior:auto!important}
+  }
 </style>
 
 <div class="wrap">
