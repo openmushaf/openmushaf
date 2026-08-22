@@ -10,6 +10,9 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
 <meta name="theme-color" content="#120E1D">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://openmushaf.org/#website","url":"https://openmushaf.org/","name":"Open Muṣḥaf","description":"A free, open Qur'an reader. Facing pages as printed, 26 languages, published translations, recitation. No account, no tracking.","inLanguage":["ar","en"],"isAccessibleForFree":true},{"@type":"Book","@id":"https://openmushaf.org/#book","name":"القرآن الكريم","alternateName":"The Qur'an","url":"https://openmushaf.org/","inLanguage":"ar","bookFormat":"https://schema.org/EBook","isAccessibleForFree":true,"numberOfPages":604,"isPartOf":{"@id":"https://openmushaf.org/#website"}}]}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link id="baseFont" href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -1060,6 +1063,11 @@ async function render(){
     const s=spread[0].surah||surahOf(spread[0].number);
     $('#surahSel').value=s.number;
     $('#loc').textContent=`${s.englishName} · ${T('page')} ${dig(state.page)}`;
+    /* the tab and any bookmark should say where the reader is, not just which
+       site this is. Built from strings the locale already has. */
+    document.title = state.mode==='ayah'&&state.sel
+      ? `${s.englishName} ${(()=>{const{a}=refOf(state.sel);return s.number+':'+a;})()} — ${T('brand')}`
+      : `${s.englishName} · ${T('page')} ${dig(state.page)} — ${T('brand')}`;
   }
   $('#pageIn').value=state.page;
   document.querySelectorAll('.v').forEach(el=>el.onclick=()=>select(+el.dataset.no));
