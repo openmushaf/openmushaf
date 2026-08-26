@@ -334,6 +334,12 @@
 (() => {
 "use strict";
 const API='https://api.alquran.cloud/v1', CDN='https://cdn.islamic.network/quran/audio';
+/* The one Arabic edition bundled under public/data. It names a directory that
+   must exist on disk, so it is a build-time constant, not application state —
+   a const cannot be reassigned, which is what went wrong when this lived on
+   `state` and boot overwrote it from the API's edition list. Ayah mode uses the
+   same identifier against the API so both views show the same orthography. */
+const AR_ED='quran-uthmani';
 const PAGES=604, AYAHS=6236, TAU=Math.PI*2;
 const KOFI='https://ko-fi.com/openmushaf';
 const $=s=>document.querySelector(s);
@@ -738,7 +744,7 @@ function detectLang(){
   return 'en';
 }
 const state={ lang:detectLang(), mode:'mushaf', page:1, sel:null, tab:'full',
-              arEd:'quran-uthmani', trEd:'en.sahih', reciter:'ar.alafasy', continuous:true };
+              trEd:'en.sahih', reciter:'ar.alafasy', continuous:true };
 const L=()=>LANGS[state.lang]; const T=k=>L().s[k];
 
 /* locale digits for interface numbers; the muṣḥaf itself always uses ٠-٩ */
@@ -838,7 +844,7 @@ function footHTML(){
 async function fetchJuz(j){
   if(juzCache[j]) return juzCache[j];
   const [ar,tr]=await Promise.all([
-    getLocal(`/data/${state.arEd}/juz-${String(j).padStart(2,'0')}.json`),
+    getLocal(`/data/${AR_ED}/juz-${String(j).padStart(2,'0')}.json`),
     getJSON(`${API}/juz/${j}/${state.trEd}`).catch(()=>({ayahs:[]}))]);
   const byPage={},trByNo={}; let min=1e9,max=0;
   (ar||[]).forEach(a=>{(byPage[a.page]=byPage[a.page]||[]).push(a); if(a.page<min)min=a.page; if(a.page>max)max=a.page;});
@@ -866,7 +872,7 @@ async function pageData(n){
 async function ayahData(s,a){
   const k=`${s}:${a}|${state.trEd}`;
   if(ayahCache[k]) return ayahCache[k];
-  const [ar,tr]=await Promise.all([getJSON(`${API}/ayah/${s}:${a}/${state.arEd}`),getJSON(`${API}/ayah/${s}:${a}/${state.trEd}`)]);
+  const [ar,tr]=await Promise.all([getJSON(`${API}/ayah/${s}:${a}/${AR_ED}`),getJSON(`${API}/ayah/${s}:${a}/${state.trEd}`)]);
   return ayahCache[k]={ar,tr};
 }
 const surahOf=g=>{ for(let i=0;i<cumAyah.length;i++) if(g<=cumAyah[i]) return surahs[i]; return surahs[113]; };
@@ -1265,11 +1271,11 @@ async function boot(){
 
   try{
     allEds=await getJSON(API+'/edition/format/text');
-    /* state.arEd is the BUNDLED edition directory under /data, not a free
-       choice: fetchJuz builds a local path from it. This used to reassign it
-       from the API — .find(/uthmani/i) returns quran-uthmani-min, the first of
-       three matches, so every load asked for /data/quran-uthmani-min/… and got
-       a 404 with empty leaves. The bundle ships one Arabic edition; leave it. */
+    /* Only the translation list is taken from here. The Arabic edition is
+       AR_ED and is not negotiable at runtime: it names a bundled directory.
+       This block used to reassign it — .find(/uthmani/i) picks
+       quran-uthmani-min, first of three matches — so every load requested
+       /data/quran-uthmani-min/… and got a 404 with empty leaves. */
   }catch(e){ allEds=[]; }
   rebuildTranslations();
   $('#transSel').onchange=()=>{
