@@ -1265,8 +1265,11 @@ async function boot(){
 
   try{
     allEds=await getJSON(API+'/edition/format/text');
-    const ar=allEds.filter(e=>e.language==='ar'&&e.type==='quran');
-    if(ar.length) state.arEd=(ar.find(e=>/uthmani/i.test(e.identifier))||ar[0]).identifier;
+    /* state.arEd is the BUNDLED edition directory under /data, not a free
+       choice: fetchJuz builds a local path from it. This used to reassign it
+       from the API — .find(/uthmani/i) returns quran-uthmani-min, the first of
+       three matches, so every load asked for /data/quran-uthmani-min/… and got
+       a 404 with empty leaves. The bundle ships one Arabic edition; leave it. */
   }catch(e){ allEds=[]; }
   rebuildTranslations();
   $('#transSel').onchange=()=>{
