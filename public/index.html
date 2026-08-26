@@ -846,10 +846,15 @@ async function fetchJuz(j){
   const [ar,tr]=await Promise.all([
     getLocal(`/data/${AR_ED}/juz-${String(j).padStart(2,'0')}.json`),
     getJSON(`${API}/juz/${j}/${state.trEd}`).catch(()=>({ayahs:[]}))]);
-  const byPage={},trByNo={}; let min=1e9,max=0;
-  (ar||[]).forEach(a=>{(byPage[a.page]=byPage[a.page]||[]).push(a); if(a.page<min)min=a.page; if(a.page>max)max=a.page;});
+  /* byNo and nmin/nmax exist so an āyah can be found by its global number the
+     same way a page is found by its page number — page mode indexes by page,
+     āyah mode by number, over one fetch. */
+  const byPage={},byNo={},trByNo={}; let min=1e9,max=0,nmin=1e9,nmax=0;
+  (ar||[]).forEach(a=>{(byPage[a.page]=byPage[a.page]||[]).push(a); byNo[a.number]=a;
+    if(a.page<min)min=a.page; if(a.page>max)max=a.page;
+    if(a.number<nmin)nmin=a.number; if(a.number>nmax)nmax=a.number;});
   (tr.ayahs||[]).forEach(a=>{trByNo[a.number]=a.text;});
-  return juzCache[j]={byPage,trByNo,min,max};
+  return juzCache[j]={byPage,byNo,trByNo,min,max,nmin,nmax};
 }
 async function locateJuz(n){
   let j=Math.min(30,Math.max(1,Math.floor((n-2)/20)+1));
@@ -857,6 +862,22 @@ async function locateJuz(n){
     const c=await fetchJuz(j);
     if(n<c.min){ if(j<=1)return 1; j--; continue; }
     if(n>c.max){ if(j>=30)return 30; j++; continue; }
+    return j;
+  }
+  return j;
+}
+/* Which juz holds global āyah n. The records carry `juz`, but that cannot be
+   read before the file is fetched, so this walks exactly as locateJuz walks —
+   the only difference is that it compares āyah numbers instead of pages. The
+   juz are unequal (148 āyāt in juz 1, 564 in juz 30), so the linear guess can
+   be off; measured worst case over all 6,236 āyāt is 5 steps, at āyah 1649.
+   Every juz it touches is cached, so the walk is paid once. */
+async function locateJuzByAyah(n){
+  let j=Math.min(30,Math.max(1,Math.floor((n-1)/208)+1));
+  for(let g=0;g<8;g++){
+    const c=await fetchJuz(j);
+    if(n<c.nmin){ if(j<=1)return 1; j--; continue; }
+    if(n>c.nmax){ if(j>=30)return 30; j++; continue; }
     return j;
   }
   return j;
@@ -869,11 +890,21 @@ async function pageData(n){
   if(n===c.max&&j<30) take(await fetchJuz(j+1));
   return { ayahs:[...seen.values()].sort((a,b)=>a.number-b.number), trs, juz:j };
 }
+/* Arabic comes from the bundle. The juz files carry every field the āyah view
+   reads — number, text, page, numberInSurah, juz, sajda — so āyah mode shows
+   Qur'anic text with the network down, which it could not before. The āyah
+   object handed back is the SAME object page mode renders, so the two views
+   cannot disagree on orthography. The translation still comes from the API,
+   through fetchJuz's own request and its own .catch: a dead API leaves
+   trByNo empty and this degrades to Arabic with no translation. */
 async function ayahData(s,a){
   const k=`${s}:${a}|${state.trEd}`;
   if(ayahCache[k]) return ayahCache[k];
-  const [ar,tr]=await Promise.all([getJSON(`${API}/ayah/${s}:${a}/${AR_ED}`),getJSON(`${API}/ayah/${s}:${a}/${state.trEd}`)]);
-  return ayahCache[k]={ar,tr};
+  const g=(s>1?cumAyah[s-2]:0)+a;
+  const c=await fetchJuz(await locateJuzByAyah(g));
+  const ar=c.byNo[g];
+  if(!ar) throw new Error(`${s}:${a}`);
+  return ayahCache[k]={ar,tr:{text:c.trByNo[g]||''}};
 }
 const surahOf=g=>{ for(let i=0;i<cumAyah.length;i++) if(g<=cumAyah[i]) return surahs[i]; return surahs[113]; };
 const refOf=g=>{ const s=surahOf(g); const b=s.number>1?cumAyah[s.number-2]:0; return {s,a:g-b}; };
